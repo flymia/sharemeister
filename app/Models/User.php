@@ -51,6 +51,7 @@ class User extends Authenticatable
         ];
     }
 
+    // Source: https://dev.to/adnanbabakan/implement-uuid-primary-key-in-laravel-and-its-benefits-55o3
     public static function boot() {
         parent::boot();
 
