@@ -15,17 +15,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::factory()->create([
-            'id' => Str::uuid(),
-            'name' => 'Max Mustermann',
-            'email' => 'test@test.com',
-            'password' => Hash::make('start')
-        ]);
-
-        $generatedToken = $user->createToken('testtoken')->plainTextToken;
-        $this->command->info("Token for User " . $user->name . " is " . $generatedToken);
-
         $this->call([
+            UserSeeder::class,
             ScreenshotSeeder::class
         ]);
     }
