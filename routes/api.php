@@ -8,4 +8,10 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::post('/upload/screenshot', ScreenshotController::class)
+Route::post('/upload/screenshot', [ScreenshotController::class, 'handleUpload'])
+    ->name('uploadscreenshot')
+    ->middleware('auth:sanctum');
+
+Route::get('/screenshot/{screenshot}', [ScreenshotController::class, 'display'])
+    ->name('displayscreenshot');
+
