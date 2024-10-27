@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ScreenshotController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -12,12 +14,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('dashboard.dashboard');
     })->name('dashboard');
 
-    Route::get('/screenshots/upload', function () {
-        return view('screenshot.upload');
-    })->name('screenshot.upload');
+    Route::get('/screenshots/upload', [ScreenshotController::class, "create"])->name('screenshot.upload');
 
-    Route::get('/screenshots/{screenshot}', function ($screenshot) {
-        return view('screenshot.show', ['screenshot' => $screenshot]);
-    })->name('screenshot.show');
+    Route::get('/screenshots/list', [ScreenshotController::class, "index"])->name('screenshot.list');
 
+    Route::get('/screenshots/{screenshot}', [ScreenshotController::class, "show"])->name('screenshot.show');
+
+    Route::get('/account/settings', [UserController::class, "index"])->name('account.settings');
 });

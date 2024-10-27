@@ -1,7 +1,7 @@
 @extends('layouts.userbase')
-@section('title', 'Dashboard')
+@section('title', 'Account settings')
 @section('content')
 
-    Screnshotliste
+    Settings
 
 @endsection
