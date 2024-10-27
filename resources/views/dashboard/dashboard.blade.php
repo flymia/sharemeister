@@ -2,6 +2,8 @@
 @section('title', 'Dashboard')
 @section('content')
 
+    <h1 class="display-5 mb-4">Dashboard</h1>
+
         <!-- Latest uploaded screenshots -->
         <div class="row">
             <div class="col-12">

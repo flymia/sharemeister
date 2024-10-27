@@ -21,7 +21,7 @@
     <!-- Modern header with user info, links, and logout button -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light rounded shadow-sm mb-4">
         <div class="container-fluid">
-            <h1 class="navbar-brand mb-0">@yield('title')</h1>
+            <h1 class="navbar-brand mb-0" ><a href="{{ route('dashboard') }}" class="text-decoration-none" style="color: black">Sharemeister</a></h1>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
