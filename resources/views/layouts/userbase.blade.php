@@ -8,7 +8,6 @@
 
     <!-- TODO: Favicon -->
 
-    <!-- TODO: LOCAL Delivery of these objects. I don't want to stream them from the cloud. This is just for dev! -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
@@ -20,21 +19,32 @@
 <body class="d-flex flex-column min-vh-100">
 <div class="container my-5 flex-grow-1">
     <!-- Modern header with user info, links, and logout button -->
-    <div class="bg-light rounded shadow-sm p-3 mb-4 d-flex justify-content-between align-items-center">
-        <h1 class="display-5 mb-0">@yield('title')</h1>
-        <div class="d-flex align-items-center gap-4">
-            <span class="text-secondary">{{ auth()->user()->name }}</span>
-            <div class="vr"></div>
-            <a href="#" class="text-decoration-none text-primary">My Screenshots</a>
-            <div class="vr"></div>
-            <a href="#" class="text-decoration-none text-primary">Settings</a>
-            <div class="vr"></div>
-            <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                @csrf
-                <button type="submit" class="btn btn-danger btn-sm">Logout</button>
-            </form>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light rounded shadow-sm mb-4">
+        <div class="container-fluid">
+            <h1 class="navbar-brand mb-0">@yield('title')</h1>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="d-flex align-items-center ms-auto">
+                    <span class="text-secondary me-3">{{ auth()->user()->name }}</span>
+                    <div class="vr me-3"></div>
+                    <a href="#" class="text-decoration-none text-primary me-3">My Screenshots</a>
+                    <div class="vr me-3"></div>
+                    <a href="#" class="text-decoration-none text-primary me-3">Settings</a>
+                    <div class="vr me-3"></div>
+                    <a href="{{ route('screenshot.upload') }}" class="btn btn-primary btn-sm me-3">
+                        <i class="bi bi-upload"></i> Upload Screenshot
+                    </a>
+                    <div class="vr me-3"></div>
+                    <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-danger btn-sm">Logout</button>
+                    </form>
+                </div>
+            </div>
         </div>
-    </div>
+    </nav>
 
     @if($errors->any())
         <div class="alert alert-danger">
