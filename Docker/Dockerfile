@@ -1,6 +1,6 @@
-FROM php:8.2-cli
+FROM php:8.3-cli
 
-LABEL org.opencontainers.image.authors="Marc Sauer"
+LABEL org.opencontainers.image.authors="Sharemeister Dev Team"
 
 RUN apt update
 RUN apt install -y curl git zip unzip
