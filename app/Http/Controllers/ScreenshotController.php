@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Screenshot;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ScreenshotController extends Controller
 {
@@ -28,7 +29,25 @@ class ScreenshotController extends Controller
      */
     public function store(Request $request)
     {
-        //
+
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        # Generate a random file name to store it with.
+        $imageName = str()->random(8) . '.' . $request->image->extension();
+
+        # Extremely unlikely edge case: If the random file name is already taken, generate another one:
+        while(Screenshot::query()->orderBy('id', 'desc')->where('image', '=', $imageName)->count() >= 1) {
+            $imageName = str()->random(8) . '.' . $request->image->extension();
+        }
+
+        $request->image->move(public_path('images'), $imageName);
+        $screenshot = new Screenshot();
+        $screenshot->image = 'images/'.$imageName;
+        $screenshot->uploader_id = Auth::user()->id;
+        $screenshot->save();
+        return redirect()->route('screenshot.upload')->with('success', 'Screenshot uploaded successfully.');
     }
 
     /**

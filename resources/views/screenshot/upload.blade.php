@@ -4,9 +4,10 @@
 @section('content')
 
     <div class="container mt-4">
-        <h1 class="display-5 mb-4">Upload Screenshot</h1>
+        <h1 class="display-5 mb-4">Upload a screenshot</h1>
 
-        <p class="lead">Please upload your screenshot.</p>
+        <!-- TODO: Set link -->
+        <p class="lead">You can upload screenshots manually here. If you want to use the API click <a href="">here.</a></p>
 
         <!-- Info Alert -->
         <div class="alert alert-info d-flex align-items-center" role="alert">
@@ -28,11 +29,18 @@
             </div>
         @endif
 
+        @if(session('success'))
+            <div class="alert alert-success">
+                <strong>{{ session('success') }}</strong>
+                <p>Public link: <a href="">adawd</a>.</p>
+            </div>
+        @endif
+
         <form action="{{ route('screenshot.upload') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="mb-3">
                 <label for="screenshot" class="form-label">Select Screenshot:</label>
-                <input type="file" class="form-control" id="screenshot" name="screenshot" accept=".png, .jpg, .jpeg" required>
+                <input type="file" class="form-control" id="image" name="image" accept=".png, .jpg, .jpeg" required>
             </div>
             <button type="submit" class="btn btn-primary">Upload</button>
         </form>

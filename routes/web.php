@@ -15,6 +15,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     Route::get('/screenshots/upload', [ScreenshotController::class, "create"])->name('screenshot.upload');
+    Route::post('/screenshots/upload', [ScreenshotController::class, "store"])->name('screenshot.upload');
+
 
     Route::get('/screenshots/list', [ScreenshotController::class, "index"])->name('screenshot.list');
 

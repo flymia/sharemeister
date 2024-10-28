@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('screenshots', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignId('uploader_id')->references('id')->on('users');
-            $table->string('file_path');
+            $table->string('image');
             $table->timestamps();
         });
     }
