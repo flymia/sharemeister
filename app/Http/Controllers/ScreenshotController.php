@@ -29,33 +29,57 @@ class ScreenshotController extends Controller
      */
     public function store(Request $request)
     {
-
         $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        # Generate a random file name to store it with.
+        // Directory structure with year/month/day for the filesystem
+        $folderPath = 'screenshots/' . date('Y/m/d') . '/';
+
+        // Generate a random filename
         $imageName = str()->random(8) . '.' . $request->image->extension();
 
-        # Extremely unlikely edge case: If the random file name is already taken, generate another one:
-        while(Screenshot::query()->orderBy('id', 'desc')->where('image', '=', $imageName)->count() >= 1) {
+        // Check if the filename exists and generate a new one if necessary
+        while (Screenshot::query()->where('image', '=', $imageName)->exists()) {
             $imageName = str()->random(8) . '.' . $request->image->extension();
         }
 
-        $request->image->move(public_path('images'), $imageName);
+        // Move the image to the `storage/app/public/screenshots/...` folder
+        $request->image->storeAs($folderPath, $imageName); // 'public/' removed
+
+        // Store the relative path in the database
         $screenshot = new Screenshot();
-        $screenshot->image = 'images/'.$imageName;
-        $screenshot->uploader_id = Auth::user()->id;
+        $screenshot->image = $folderPath . $imageName; // Relative path in the DB
+        $screenshot->uploader_id = Auth::id();
         $screenshot->save();
-        return redirect()->route('screenshot.upload')->with('success', 'Screenshot uploaded successfully.');
+
+        // Generate the public link
+        $publicLink = route('screenshot.show', ['filename' => $imageName]);
+
+        // Store the link in the session and redirect
+        return redirect()->route('screenshot.upload')->with([
+            'success' => 'Screenshot uploaded successfully.',
+            'public_link' => $publicLink,
+        ]);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Screenshot $screenshot)
+    public function show($filename)
     {
-        //
+        // Search for the screenshot in the database
+        $screenshot = Screenshot::where('image', 'like', '%' . $filename)->firstOrFail();
+
+        // Build the complete path to the file in the storage directory
+        $path = storage_path('app/public/' . $screenshot->image);
+
+        // Check if the file exists and return it
+        if (file_exists($path)) {
+            return response()->file($path);
+        } else {
+            abort(404); // File not found
+        }
     }
 
     /**

@@ -13,7 +13,7 @@
         <div class="alert alert-info d-flex align-items-center" role="alert">
             <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
             <div>
-                Allowed file types: <strong>PNG, JPG, JPEG</strong>.<br>
+                Allowed file types: <strong>PNG, JPG, JPEG, GIF</strong>.<br>
                 Maximum size: <strong>2MB</strong>.
             </div>
         </div>
@@ -32,7 +32,7 @@
         @if(session('success'))
             <div class="alert alert-success">
                 <strong>{{ session('success') }}</strong>
-                <p>Public link: <a href="">adawd</a>.</p>
+                <p>Public link: <a href="{{ session('public_link') }}" target="_blank">{{ session('public_link') }}</a></p>
             </div>
         @endif
 
@@ -40,7 +40,7 @@
             @csrf
             <div class="mb-3">
                 <label for="screenshot" class="form-label">Select Screenshot:</label>
-                <input type="file" class="form-control" id="image" name="image" accept=".png, .jpg, .jpeg" required>
+                <input type="file" class="form-control" id="image" name="image" accept=".png, .jpg, .jpeg, .gif" required>
             </div>
             <button type="submit" class="btn btn-primary">Upload</button>
         </form>

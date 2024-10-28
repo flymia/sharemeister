@@ -29,12 +29,12 @@
                 <div class="d-flex align-items-center ms-auto">
                     <span class="text-secondary me-3">{{ auth()->user()->name }}</span>
                     <div class="vr me-3"></div>
-                    <a href="{{ route('screenshot.list') }}" class="text-decoration-none text-primary me-3">My Screenshots</a>
+                    <a href="{{ route('screenshot.list') }}" class="text-decoration-none text-primary me-3">My screenshots</a>
                     <div class="vr me-3"></div>
                     <a href="{{ route('account.settings') }}" class="text-decoration-none text-primary me-3">Settings</a>
                     <div class="vr me-3"></div>
                     <a href="{{ route('screenshot.upload') }}" class="btn btn-primary btn-sm me-3">
-                        <i class="bi bi-upload"></i> Upload Screenshot
+                        <i class="bi bi-upload"></i> Upload screenshot
                     </a>
                     <div class="vr me-3"></div>
                     <form action="{{ route('logout') }}" method="POST" class="d-inline">
