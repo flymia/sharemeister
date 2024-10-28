@@ -13,7 +13,9 @@ class ScreenshotController extends Controller
      */
     public function index()
     {
-        return view('screenshot.list');
+        $screenshots = Screenshot::where('uploader_id', Auth::id())->paginate(10);
+
+        return view('screenshot.list', ['screenshots' => $screenshots]);
     }
 
     /**

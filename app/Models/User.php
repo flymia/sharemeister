@@ -46,4 +46,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
+
+    public function screenshots() {
+        return $this->hasMany(Screenshot::class, 'upload_id');
+    }
 }
