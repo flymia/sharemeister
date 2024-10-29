@@ -66,10 +66,16 @@ class ScreenshotController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Displays the screenshot detail page
      */
-    public function show($filename)
+    public function show(Request $request)
     {
+        $screenshot = Screenshot::where('id', '=', $request->id)->where('uploader_id', Auth::id())->firstOrFail();
+        return view('screenshot.detail', ['screenshot' => $screenshot]);
+    }
+
+    // Display the screenshot without anything else. Raw link.
+    public function rawShow($filename) {
         // Search for the screenshot in the database
         $screenshot = Screenshot::where('image', 'like', '%' . $filename)->firstOrFail();
 

@@ -15,21 +15,26 @@
         </div>
 
         <div class="row" id="screenshot-container">
-            @foreach($screenshots as $scr)
-                <div class="col-md-3 mb-3"> <!-- Bootstrap column for responsive layout -->
-                    <div class="screenshot-container position-relative"> <!-- Position relative for absolute positioning -->
-                        <img src="{{ $scr->publicURL }}" alt="Screenshot" class="screenshot-img" />
-                        <div class="overlay text-center"> <!-- Overlay for hover effect -->
-                            <a href="" class="btn btn-primary">View Details</a>
-                            <form action="#" method="POST" style="display:inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger">Delete</button>
-                            </form>
+            @if($screenshots->isEmpty())
+                <p class="text-center">No screenshots available. Start by uploading your first screenshot!</p>
+            @else
+                @foreach($screenshots as $scr)
+                    <div class="col-md-3 mb-3"> <!-- Bootstrap column for responsive layout -->
+                        <div class="screenshot-container position-relative"> <!-- Position relative for absolute positioning -->
+                            <img src="{{ $scr->publicURL }}" alt="Screenshot" class="screenshot-img" />
+                            <div class="overlay text-center"> <!-- Overlay for hover effect -->
+                                <a href="{{ route('screenshot.details', $scr->id) }}" class="btn btn-primary">View Details</a>
+                                <a href="" class="btn btn-secondary">Copy link</a>
+                                <form action="#" method="POST" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
-            @endforeach
+                @endforeach
+            @endif
         </div>
 
         <!-- Pagination -->
