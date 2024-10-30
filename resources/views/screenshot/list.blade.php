@@ -5,12 +5,24 @@
     <div class="container mt-4">
         <h1 class="display-5 mb-4">Your Screenshots</h1>
 
+        <!-- Alert when deleted -->
+        @if(session('message'))
+        <div class="alert alert-info d-flex align-items-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
+            <div>
+                The screenshot was deleted.
+            </div>
+        </div>
+        @endif
+
         <div class="d-flex justify-content-end mb-3"> <!-- Flexbox for positioning -->
             <label for="sort" class="form-label me-2">Sort by:</label>
-            <select id="sort" class="form-select form-select-sm" onchange="sortScreenshots()" style="width: auto;">
-                <option value="latest" selected>Latest</option>
-                <option value="oldest">Oldest</option>
-                <option value="name">Name</option>
+            <select id="sort" onchange="sortScreenshots()">
+                <option value="created_at" {{ request('sort') == 'created_at' ? 'selected' : '' }}>Date (Newest First)</option>
+                <option value="created_at_desc" {{ request('sort') == 'created_at_desc' ? 'selected' : '' }}>Date (Oldest First)</option>
+
+                <!-- Maybe for the future -->
+                <!-- Sort by size ? -->
             </select>
         </div>
 
@@ -25,7 +37,7 @@
                             <div class="overlay text-center"> <!-- Overlay for hover effect -->
                                 <a href="{{ route('screenshot.details', $scr->id) }}" class="btn btn-primary">View Details</a>
                                 <a href="" class="btn btn-secondary">Copy link</a>
-                                <form action="#" method="POST" style="display:inline;">
+                                <form action="{{ route('screenshot.delete', $scr->id) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger">Delete</button>
@@ -82,12 +94,7 @@
     <script>
         function sortScreenshots() {
             const sortValue = document.getElementById('sort').value;
-
-            // Here you could add logic to update the screenshots based on the sort value.
-            // This could be an AJAX request or a redirect, depending on how you want to manage the data.
-
-            // Example: Redirect with sorting parameters
-            //window.location.href = ` route('screenshot.index') ?sort=${sortValue}`;
+            window.location.href = `{{ route('screenshot.list') }}?sort=${sortValue}`;
         }
     </script>
 

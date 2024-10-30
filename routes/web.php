@@ -21,6 +21,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/screenshots/details/{id}', [ScreenshotController::class, "show"])->name('screenshot.details');
 
+    Route::delete('/screenshots/delete/{id}', [ScreenshotController::class, "destroy"])->name('screenshot.delete');
+
     Route::get('/screenshots/list', [ScreenshotController::class, "index"])->name('screenshot.list');
     Route::get('/account/settings', [UserController::class, "index"])->name('account.settings');
 });

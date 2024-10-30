@@ -25,7 +25,7 @@
 
                 <!-- Delete Button -->
                 <div class="text-center">
-                    <form action="{{ '#' }}" method="POST">
+                    <form action="{{ route('screenshot.delete', $screenshot->id )}}" method="POST">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-lg px-4"

@@ -5,17 +5,34 @@ namespace App\Http\Controllers;
 use App\Models\Screenshot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 
 class ScreenshotController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $screenshots = Screenshot::where('uploader_id', Auth::id())->paginate(10);
+        $sort = $request->query('sort', 'created_at'); // Standardmäßig nach 'created_at' sortieren
 
-        return view('screenshot.list', ['screenshots' => $screenshots]);
+        // Sortierlogik basierend auf dem Parameter
+        $query = Screenshot::where('uploader_id', Auth::id());
+        switch ($sort) {
+            case 'created_at':
+                $query->orderBy('created_at', 'desc');
+                break;
+            case 'created_at_desc':
+                $query->orderBy('created_at', 'asc');
+                break;
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+
+        $screenshots = $query->paginate(10)->appends(['sort' => $sort]); // Paginate mit Sortierparametern
+
+        return view('screenshot.list', ['screenshots' => $screenshots, 'sort' => $sort]);
     }
 
     /**
@@ -109,8 +126,18 @@ class ScreenshotController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Screenshot $screenshot)
+    public function destroy(Request $request)
     {
-        //
+        $toDelete = Screenshot::find($request->id);
+
+        // Abort the process if it is owned by another user.
+        if($toDelete->uploader_id != Auth::id()){
+            abort('403');
+        }
+
+        $toDeletePath = storage_path('app/public/' . $toDelete->image);
+        File::delete($toDeletePath);
+        $toDelete->delete();
+        return redirect('/screenshots/list')->with('message', 'Screenshot deleted successfully.');
     }
 }
