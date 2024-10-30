@@ -10,7 +10,7 @@
         <div class="alert alert-info d-flex align-items-center" role="alert">
             <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
             <div>
-                The screenshot was deleted.
+                {{ session('message') }}
             </div>
         </div>
         @endif
@@ -57,39 +57,58 @@
 
     <style>
         .screenshot-container {
-            width: 100%; /* Adjust width */
-            overflow: hidden; /* Hide overflow */
-            position: relative; /* For positioning images */
+            position: relative;
+            width: 100%;
+            overflow: hidden;
         }
 
         .screenshot-img {
-            width: 100%; /* Set image to full width */
-            height: auto; /* Automatically adjust height */
-            max-height: 200px; /* Set maximum height */
-            object-fit: cover; /* Maintain aspect ratio */
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            transition: transform 0.3s ease;
         }
 
         .overlay {
-            position: absolute; /* Position overlay absolutely */
+            position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-            color: white; /* Text color */
-            display: flex; /* Flexbox for centering */
-            flex-direction: column; /* Stack buttons vertically */
-            justify-content: center; /* Center vertically */
-            align-items: center; /* Center horizontally */
-            opacity: 0; /* Start hidden */
-            transition: opacity 0.3s ease; /* Fade effect */
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            display: flex;
+            align-items: flex-end; /* Position the content at the bottom */
+            padding: 10px; /* Add padding for spacing */
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
+        /* Show overlay on hover */
         .screenshot-container:hover .overlay {
-            opacity: 1; /* Show overlay on hover */
+            opacity: 1;
         }
 
+        /* Zoom-in effect on image */
+        .screenshot-container:hover .screenshot-img {
+            transform: scale(1.05);
+        }
+
+        /* Container for the buttons within the overlay */
+        .button-group {
+            display: flex;
+            flex-direction: column; /* Stack buttons vertically */
+            gap: 8px; /* Space between buttons */
+            width: 100%; /* Make buttons fill the width of the container */
+        }
+
+        .button-group a,
+        .button-group form {
+            display: block;
+            width: 100%;
+        }
     </style>
+
 
     <script>
         function sortScreenshots() {
