@@ -1,57 +1,55 @@
 @extends('layouts.userbase')
-@section('title', 'Account settings')
+@section('title', 'Account Settings')
 @section('content')
 
-    <div class="container mt-4">
-        <h1 class="display-5 mb-4">Settings</h1>
-        <p>Here you can change your name or email, request a password reset or get your API key.</p>
-        <div class="accordion" id="accountAccordion">
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                        Profile details
-                    </button>
-                </h2>
-                <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
-                    <div class="accordion-body">
-                        <form action="#" method="POST" class="mx-2" style="max-width: 400px;">
+    <div class="container mt-4 d-flex justify-content-center"> <!-- Center content within the container -->
+        <div style="max-width: 800px; width: 100%;"> <!-- Responsive width to center cards -->
+            <h1 class="display-5 mb-4 text-center">Account Settings</h1>
+            <p class="text-center">Here you can update your profile details, generate an API key, and view your account statistics.</p>
+
+            <!-- Profile Details Section -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Profile Details</h5>
+                    <form action="" method="POST">
+                        @csrf
+                        <div class="mb-3">
                             <label for="name" class="form-label">Name:</label>
-                            <input type="text" class="form-control" id="name" name="name" value="">
-                        </form>
-                    </div>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ $loggedUser->name }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email:</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ $loggedUser->email }}">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
                 </div>
             </div>
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                        API Key
-                    </button>
-                </h2>
-                <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
-                    <div class="accordion-body">
-                        Generate API key:
-                    </div>
+
+            <!-- API Key Section -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">API Key</h5>
+                    <p>Generate a new API key for external access.</p>
+                    <form action="" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-warning">Generate API Key</button>
+                    </form>
                 </div>
             </div>
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                        Account statistics
-                    </button>
-                </h2>
-                <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
-                    <div class="accordion-body">
-                        <ul>
-                            <li>Account creation date: </li>
-                            <li>Uploaded screenhosts: </li>
-                            <li>File size of all screenshots: </li>
-                        </ul>
-                    </div>
+
+            <!-- Account Statistics Section -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Account Statistics</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Account creation date:</strong> {{ $loggedUser->created_at->format('Y-m-d') }}</li>
+                        <li class="list-group-item"><strong>Uploaded screenshots:</strong> {{ $loggedUser->screenshots()->count() }}</li>
+                        <li class="list-group-item"><strong>Total file size:</strong> {{ $loggedUser->screenshots->sum('file_size_kb') }} KB</li>
+                    </ul>
                 </div>
             </div>
         </div>
-
     </div>
-
 
 @endsection

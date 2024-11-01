@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-center mt-5">
         <div class="card shadow-lg border-0" style="max-width: 800px; border-radius: 12px;">
             <div class="card-body p-4">
-                <h2 class="card-title text-center mb-4">Screenshot Details</h2>
+                <h2 class="card-title text-center mb-4">Details</h2>
 
                 <!-- Screenshot Image -->
                 <div class="text-center mb-4">
@@ -18,9 +18,10 @@
 
                 <!-- Metadata Section -->
                 <div class="bg-light p-3 rounded mb-4" style="box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                    <h5 class="text-muted mb-3">Screenshot Metadata</h5>
+                    <h5 class="text-muted mb-3">Metadata</h5>
                     <p class="mb-1"><strong>Upload Time:</strong> {{ $screenshot->created_at->format('d M Y, H:i') }}</p>
                     <p class="mb-0"><strong>Size:</strong> {{ $screenshot->file_size_kb }} KB</p>
+                    <p class="mb-0"><strong>Screenshot-UUID:</strong> <i>{{ $screenshot->id }}</i></p>
                 </div>
 
                 <!-- Delete Button -->
@@ -30,7 +31,7 @@
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-lg px-4"
                                 style="border-radius: 30px; box-shadow: 0 3px 8px rgba(255, 0, 0, 0.3);">
-                            Delete Screenshot
+                            Delete
                         </button>
                     </form>
                 </div>

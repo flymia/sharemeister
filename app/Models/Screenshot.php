@@ -16,7 +16,7 @@ class Screenshot extends Model
      */
     public function getPublicURLAttribute()
     {
-        // Generiere die URL basierend auf dem Bildpfad
+        // Generate URL based on the file path.
         return url('share/' . basename($this->image));
     }
 
@@ -24,13 +24,12 @@ class Screenshot extends Model
     {
         $filePath = storage_path('app/public/' . $this->image);
 
-        // Check if the file exists. This should not happen, as the model would not be found, but u know...
         if (file_exists($filePath)) {
             // Show it in Kilobyte
             return round(filesize($filePath) / 1024);
         }
 
-        return null; // Gibt null zurück, wenn die Datei nicht existiert
+        return null; // Null if the file does not exist for some reason.
     }
 
 }

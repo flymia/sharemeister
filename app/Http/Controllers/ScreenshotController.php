@@ -14,14 +14,11 @@ class ScreenshotController extends Controller
      */
     public function index(Request $request)
     {
-        $sort = $request->query('sort', 'created_at'); // Standardmäßig nach 'created_at' sortieren
+        $sort = $request->query('sort', 'created_at'); // Default sort to "created_at"
 
-        // Sortierlogik basierend auf dem Parameter
+        // Sort logic based on the parameter
         $query = Screenshot::where('uploader_id', Auth::id());
         switch ($sort) {
-            case 'created_at':
-                $query->orderBy('created_at', 'desc');
-                break;
             case 'created_at_desc':
                 $query->orderBy('created_at', 'asc');
                 break;
@@ -30,7 +27,7 @@ class ScreenshotController extends Controller
                 break;
         }
 
-        $screenshots = $query->paginate(10)->appends(['sort' => $sort]); // Paginate mit Sortierparametern
+        $screenshots = $query->paginate(10)->appends(['sort' => $sort]); // Paginate with sort parameters
 
         return view('screenshot.list', ['screenshots' => $screenshots, 'sort' => $sort]);
     }
