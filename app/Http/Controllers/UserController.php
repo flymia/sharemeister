@@ -16,4 +16,9 @@ class UserController extends Controller
         return view('dashboard.settings',  ['loggedUser' => $loggedUser]);
     }
 
+    public function generateapikey(Request $request) {
+        $token = $request->user()->createToken('uploadkey');
+        return redirect('/account/settings')->with('token', $token->plainTextToken);
+    }
+
 }

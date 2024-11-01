@@ -31,7 +31,29 @@
                 <div class="card-body">
                     <h5 class="card-title">API Key</h5>
                     <p>Generate a new API key for external access.</p>
-                    <form action="" method="POST">
+
+                    @if(session('apikey'))
+                    <div class="alert alert-info d-flex align-items-center" role="alert">
+                        <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <p>Successfully generated API key. Be sure to save this key somewhere. It will only show once!</p>
+
+                            <p class="d-inline-flex gap-1">
+                                <a class="" data-bs-toggle="collapse" href="#apiCollapse" role="button" aria-expanded="false" aria-controls="apiCollapse">
+                                    Show Key
+                                </a>
+                            </p>
+                            <div class="collapse" id="apiCollapse">
+                                <div class="card card-body">
+                                    <span id="apiKey" style="cursor: pointer; color: blue; text-decoration: underline;">adopkwapodkawdopkadwop</span>
+                                    <small id="copyFeedback" style="display: none; color: green; font-style: italic;">Copied to clipboard!</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    <form action="{{ route('account.settings.generateapikey') }}" method="POST">
                         @csrf
                         <button type="submit" class="btn btn-warning">Generate API Key</button>
                     </form>
@@ -51,5 +73,18 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.getElementById("apiKey").onclick = function() {
+            const apiKey = document.getElementById("apiKey").textContent;
+            navigator.clipboard.writeText(apiKey).then(() => {
+                const feedback = document.getElementById("copyFeedback");
+                feedback.style.display = "inline";
+                setTimeout(() => { feedback.style.display = "none"; }, 2000); // Hide feedback after 2 seconds
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+    </script>
 
 @endsection
