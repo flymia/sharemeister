@@ -3,4 +3,5 @@ TODO:
 * Some kind of install process [ ]
 * API key deletion [ ]
 * Import process to import pictures which are already on the filesystem [ ]
+* Add a deployment process (Maybe via GitHub actions) [ ]
 
