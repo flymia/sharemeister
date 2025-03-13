@@ -28,4 +28,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/account/settings', [UserController::class, "index"])->name('account.settings');
     Route::post('/account/settings/update', [UserController::class, "update"])->name('account.settings.update');
     Route::post('/account/settings/generateapikey', [UserController::class, "generateapikey"])->name('account.settings.generateapikey');
+    Route::post('/account/settings/deleteapikey', [UserController::class, "deleteapikey"])->name('account.settings.deleteapikey');
+
 });

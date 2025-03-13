@@ -30,33 +30,56 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">API Key</h5>
-                    <p>Generate a new API key for external access.</p>
+                    <p>Manage your API key.</p>
 
-                    @if(session('apikey'))
-                    <div class="alert alert-info d-flex align-items-center" role="alert">
-                        <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
-                        <div>
-                            <p>Successfully generated API key. Be sure to save this key somewhere. It will only show once!</p>
-
-                            <p class="d-inline-flex gap-1">
-                                <a class="" data-bs-toggle="collapse" href="#apiCollapse" role="button" aria-expanded="false" aria-controls="apiCollapse">
-                                    Show Key
-                                </a>
-                            </p>
-                            <div class="collapse" id="apiCollapse">
-                                <div class="card card-body">
-                                    <span id="apiKey" style="cursor: pointer; color: blue; text-decoration: underline;">adopkwapodkawdopkadwop</span>
-                                    <small id="copyFeedback" style="display: none; color: green; font-style: italic;">Copied to clipboard!</small>
-                                </div>
+                    @if(session('message'))
+                        <div class="alert alert-info d-flex align-items-center" role="alert">
+                            <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
+                            <div>
+                                {{ session('message') }}
                             </div>
                         </div>
-                    </div>
                     @endif
 
-                    <form action="{{ route('account.settings.generateapikey') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-warning">Generate API Key</button>
-                    </form>
+                    @if(session('userHasAPIKey'))
+                        <div class="alert alert-info d-flex align-items-center" role="alert">
+                            <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
+                            <div>
+                                You already created an API key on <b>{{ session('apiKeyCreatedAt') }}</b>. The API key only shows once on creation. If you lost your old one, please delete the current API key and create a new one.
+                            </div>
+                        </div>
+
+                        <form action="{{ route('account.settings.deleteapikey') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-danger">Delete API key</button>
+                        </form>
+                    @else
+                        @if(session('apikey'))
+                            <div class="alert alert-info d-flex align-items-center" role="alert">
+                                <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
+                                <div>
+                                    <p>Successfully generated API key. Be sure to save this key somewhere. It will only show once!</p>
+
+                                    <p class="d-inline-flex gap-1">
+                                        <a class="" data-bs-toggle="collapse" href="#apiCollapse" role="button" aria-expanded="false" aria-controls="apiCollapse">
+                                            Show Key
+                                        </a>
+                                    </p>
+                                    <div class="collapse" id="apiCollapse">
+                                        <div class="card card-body">
+                                            <span id="apiKey" style="cursor: pointer; color: blue; text-decoration: underline;">adopkwapodkawdopkadwop</span>
+                                            <small id="copyFeedback" style="display: none; color: green; font-style: italic;">Copied to clipboard!</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                            <form action="{{ route('account.settings.generateapikey') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-warning">Generate API Key</button>
+                            </form>
+                    @endif
                 </div>
             </div>
 
