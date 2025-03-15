@@ -9,6 +9,8 @@ class Screenshot extends Model
 {
     use HasUuids, HasFactory;
 
+    protected $fillable = ['uploader_id', 'image'];
+
     /**
      * Get the public URL for the screenshot.
      *
