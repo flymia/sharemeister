@@ -10,7 +10,7 @@ class Screenshot extends Model
 {
     use HasUuids, HasFactory;
 
-    protected $fillable = ['uploader_id', 'image'];
+    protected $fillable = ['uploader_id', 'image', 'file_size_kb'];
     protected $appends = ['publicURL'];
 
     /**
