@@ -12,9 +12,10 @@ Route::get('/share/{filename}', [ScreenshotController::class, 'rawshow'])->name(
 
 // Authenticated and Verified Routes
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/home', function () {
-        return view('dashboard.dashboard');
-    })->name('dashboard');
+
+    Route::get('/home', [ScreenshotController::class, 'dashboard'])
+        ->middleware(['auth'])
+        ->name('dashboard');
 
     Route::get('/screenshots/upload', [ScreenshotController::class, "create"])->name('screenshot.upload');
     Route::post('/screenshots/upload', [ScreenshotController::class, "store"])->name('screenshot.upload');

@@ -137,4 +137,26 @@ class ScreenshotController extends Controller
         $toDelete->delete();
         return redirect('/screenshots/list')->with('message', 'Screenshot deleted successfully.');
     }
+
+    public function dashboard()
+    {
+        $user = Auth::user();
+        
+        // Get latest 5
+        $screenshots = Screenshot::where('uploader_id', $user->id)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Calculate stats for the user
+        $totalCount = Screenshot::where('uploader_id', $user->id)->count();
+        $totalSizeKb = Screenshot::where('uploader_id', $user->id)->get()->sum(fn($s) => $s->file_size_kb);
+
+        return view('dashboard.dashboard', [
+            'screenshots' => $screenshots,
+            'totalCount' => $totalCount,
+            'totalSize' => round($totalSizeKb / 1024, 2) // Convert to MB
+        ]);
+    }
+
 }
