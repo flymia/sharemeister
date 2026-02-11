@@ -3,6 +3,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Ramsey\Uuid\Type\Integer;
 
 class Screenshot extends Model
@@ -10,16 +11,18 @@ class Screenshot extends Model
     use HasUuids, HasFactory;
 
     protected $fillable = ['uploader_id', 'image'];
+    protected $appends = ['publicURL'];
 
     /**
-     * Get the public URL for the screenshot.
-     *
-     * @return string
+     * Accessor für die Public URL.
+     * Ermöglicht den Aufruf via $screenshot->publicURL
      */
-    public function getPublicURLAttribute()
+    protected function publicURL(): Attribute
     {
-        // Generate URL based on the file path.
-        return url('share/' . basename($this->image));
+        return Attribute::make(
+            // Wir generieren den Link direkt zu deiner 'rawShow' Route
+            get: fn () => url('screenshots/' . basename($this->image)),
+        );
     }
 
     public function getFileSizeKbAttribute()

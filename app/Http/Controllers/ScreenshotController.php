@@ -10,14 +10,39 @@ use Illuminate\Support\Facades\File;
 class ScreenshotController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Private Hilfsmethode, um den eigentlichen Upload-Prozess zu handhaben.
+     * Zentralisiert die Logik für Web, API und RAW-Uploads.
+     */
+    private function handleUpload($file)
+    {
+        $folderPath = 'screenshots/' . date('Y/m/d') . '/';
+        $imageName = str()->random(8) . '.' . $file->extension();
+
+        // Kollisionsprüfung für den Dateinamen
+        while (Screenshot::where('image', 'like', "%$imageName")->exists()) {
+            $imageName = str()->random(8) . '.' . $file->extension();
+        }
+
+        // Speichern auf dem 'public' Disk
+        $file->storeAs($folderPath, $imageName, 'public');
+
+        // Datenbankeintrag erstellen
+        return Screenshot::create([
+            'image' => $folderPath . $imageName,
+            'uploader_id' => Auth::id(),
+            'file_size_kb' => round($file->getSize() / 1024),
+        ]);
+    }
+
+    /**
+     * Zeigt die Liste aller Screenshots des Users an.
      */
     public function index(Request $request)
     {
-        $sort = $request->query('sort', 'created_at'); // Default sort to "created_at"
+        $sort = $request->query('sort', 'created_at');
 
-        // Sort logic based on the parameter
         $query = Screenshot::where('uploader_id', Auth::id());
+        
         switch ($sort) {
             case 'created_at_desc':
                 $query->orderBy('created_at', 'asc');
@@ -27,137 +52,141 @@ class ScreenshotController extends Controller
                 break;
         }
 
-        $screenshots = $query->paginate(10)->appends(['sort' => $sort]); // Paginate with sort parameters
+        $screenshots = $query->paginate(12)->appends(['sort' => $sort]);
 
         return view('screenshot.list', ['screenshots' => $screenshots, 'sort' => $sort]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Zeigt das Upload-Formular (Web).
      */
     public function create()
     {
         return view('screenshot.upload');
     }
 
- /**
- * Store multiple resources in storage.
- */
-public function store(Request $request)
-{
-    // 1. Validation for an array of images
-    $request->validate([
-        'image' => 'required|array',
-        'image.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-    ]);
-
-    $uploadedCount = 0;
-    $folderPath = 'screenshots/' . date('Y/m/d') . '/';
-
-    // 2. Loop through each file
-    foreach ($request->file('image') as $file) {
-        $imageName = str()->random(8) . '.' . $file->extension();
-
-        // Prevent collisions
-        while (Screenshot::where('image', 'like', "%$imageName")->exists()) {
-            $imageName = str()->random(8) . '.' . $file->extension();
-        }
-
-        // 3. Store the file on 'public' disk
-        $file->storeAs($folderPath, $imageName, 'public');
-
-        // 4. Create DB record
-        Screenshot::create([
-            'image' => $folderPath . $imageName,
-            'uploader_id' => Auth::id(),
+    /**
+     * Verarbeitet den Multi-Upload über das Web-Interface.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|array',
+            'image.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $uploadedCount++;
+        $files = $request->file('image');
+        foreach ($files as $file) {
+            $this->handleUpload($file);
+        }
+
+        return redirect()->route('screenshot.upload')->with([
+            'success' => count($files) . " screenshots uploaded successfully.",
+        ]);
     }
 
-    return redirect()->route('screenshot.upload')->with([
-        'success' => "$uploadedCount screenshots uploaded successfully.",
-    ]);
-}
-
     /**
-     * Displays the screenshot detail page
+     * Zeigt die Detailseite eines Screenshots.
      */
     public function show(Request $request)
     {
-        $screenshot = Screenshot::where('id', '=', $request->id)->where('uploader_id', Auth::id())->firstOrFail();
+        $screenshot = Screenshot::where('id', $request->id)
+            ->where('uploader_id', Auth::id())
+            ->firstOrFail();
+
         return view('screenshot.detail', ['screenshot' => $screenshot]);
     }
 
-    // Display the screenshot without anything else. Raw link.
+    /**
+     * Liefert das reine Bild aus (Raw Link).
+     */
     public function rawShow($filename) {
-        // Search for the screenshot in the database
+        // Sucht z.B. nach einem Pfad, der auf 'vMzylDRm.jpg' endet
         $screenshot = Screenshot::where('image', 'like', '%' . $filename)->firstOrFail();
 
-        // Build the complete path to the file in the storage directory
         $path = storage_path('app/public/' . $screenshot->image);
 
-        // Check if the file exists and return it
         if (file_exists($path)) {
             return response()->file($path);
         } else {
-            abort(404); // File not found
+            abort(404);
         }
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Screenshot $screenshot)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Screenshot $screenshot)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
+     * Löscht einen Screenshot (Datenbank & Dateisystem).
      */
     public function destroy(Request $request)
     {
-        $toDelete = Screenshot::find($request->id);
+        $toDelete = Screenshot::findOrFail($request->id);
 
-        // Abort the process if it is owned by another user.
-        if($toDelete->uploader_id != Auth::id()){
-            abort('403');
+        if ($toDelete->uploader_id != Auth::id()) {
+            abort(403);
         }
 
         $toDeletePath = storage_path('app/public/' . $toDelete->image);
-        File::delete($toDeletePath);
+        
+        if (File::exists($toDeletePath)) {
+            File::delete($toDeletePath);
+        }
+
         $toDelete->delete();
-        return redirect('/screenshots/list')->with('message', 'Screenshot deleted successfully.');
+
+        return redirect()->route('screenshot.list')->with('message', 'Screenshot deleted successfully.');
     }
 
+    /**
+     * Dashboard-Übersicht mit Statistiken.
+     */
     public function dashboard()
     {
         $user = Auth::user();
         
-        // Get latest 5
         $screenshots = Screenshot::where('uploader_id', $user->id)
             ->latest()
-            ->take(5)
+            ->take(6)
             ->get();
 
-        // Calculate stats for the user
         $totalCount = Screenshot::where('uploader_id', $user->id)->count();
-        $totalSizeKb = Screenshot::where('uploader_id', $user->id)->get()->sum(fn($s) => $s->file_size_kb);
+        $totalSizeKb = Screenshot::where('uploader_id', $user->id)->sum('file_size_kb');
 
         return view('dashboard.dashboard', [
             'screenshots' => $screenshots,
             'totalCount' => $totalCount,
-            'totalSize' => round($totalSizeKb / 1024, 2) // Convert to MB
+            'totalSize' => round($totalSizeKb / 1024, 2)
         ]);
     }
 
+    /**
+     * API Upload: Gibt ein JSON-Response für ShareX zurück.
+     */
+    public function apiUpload(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|max:2048',
+        ]);
+
+        $screenshot = $this->handleUpload($request->file('image'));
+
+        return response()->json([
+            'success' => true,
+            'public_link' => $screenshot->publicURL,
+            'message' => 'Upload successful'
+        ]);
+    }
+
+    /**
+     * API Upload RAW: Gibt nur den Public Link als Plain Text zurück.
+     */
+    public function apiUploadRaw(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|max:2048',
+        ]);
+
+        $screenshot = $this->handleUpload($request->file('image'));
+
+        return response($screenshot->publicURL, 201)
+            ->header('Content-Type', 'text/plain');
+    }
 }

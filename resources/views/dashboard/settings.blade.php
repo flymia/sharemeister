@@ -81,6 +81,12 @@
                             </button>
                         </form>
                     </div>
+
+                    <div class="mt-3">
+                        <a href="{{ route('account.settings.sxcu') }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-download me-1"></i> Download ShareX Config (.sxcu)
+                        </a>
+                    </div>
                 @else
                     <div class="text-center py-3">
                         <p class="text-muted small">No API key generated yet. Generate one to use ShareX.</p>

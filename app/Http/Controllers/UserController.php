@@ -76,5 +76,37 @@ class UserController extends Controller
         return back()->with('message', 'Profil erfolgreich aktualisiert.');
     }
 
+    public function downloadSxcu(Request $request)
+    {
+        $user = $request->user();
+        $token = $user->tokens()->latest()->first();
+
+        if (!$token) {
+            return back()->with('error', 'Bitte generiere zuerst einen API-Key.');
+        }
+
+        // Die Konfiguration für ShareX
+        $config = [
+            'Version' => '15.0.0',
+            'Name' => 'Sharemeister (' . config('app.name') . ')',
+            'DestinationType' => 'ImageUploader',
+            'RequestMethod' => 'POST',
+            'RequestURL' => route('api.screenshot.upload'), // Wir brauchen noch eine API-Route!
+            'Headers' => [
+                'Authorization' => 'Bearer ' . session('apikey'), // Der Plain-Text Token aus der Session
+                'Accept' => 'application/json',
+            ],
+            'Body' => 'MultipartFormData',
+            'FileFormName' => 'image', // Das Feld, das dein Controller erwartet
+            'URL' => '$json:public_link$', // ShareX liest den Link aus der JSON-Antwort
+            'ErrorMessage' => '$json:message$'
+        ];
+
+        $fileName = strtolower(config('app.name')) . '_config.sxcu';
+
+        return response()->streamDownload(function () use ($config) {
+            echo json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        }, $fileName, ['Content-Type' => 'application/json']);
+    }
 
 }
