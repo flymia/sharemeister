@@ -1,41 +1,88 @@
-# Sharemeister
+# 🚀 Sharemeister
 
-Simple screenshot hosting application with user backend implemented in Laravel for use with ShareX or cURL or other clients. It provides a basic webinterface to view your uploaded screenshots.
+**Sharemeister** is a private, high-performance screenshot hosting instance. It is designed for users who value privacy and want to keep their data on their own infrastructure rather than third-party clouds.
 
-## Features
+## 🛠️ Features
 
-* Webinterface with user registration, login and API key
-* Upload screenshots via the webinterface and generate a share link
-* Upload screenshots via REST-API (WIP)
-* Automic ShareX template generation (WIP)
-* Import existing screenshots into the DB (WIP)
-* Link sharing only with password (WIP)
-* Deployment strategy and some sort of installation process (WIP)
+* **Custom Instance Identity:** Personalize your instance via the `.env` configuration (e.g., "Home-Lab-Vault").
+* **Storage Quotas:** Built-in quota system with visual progress bars (150MB default for users, Infinite for Admins).
+* **Virtual Cockpit UI:** Clean, modern dashboard using Bootstrap 5 with high-fidelity UI components.
+* **SysAdmin CLI Suite:**
+    * `sharemeister:install` - Guided installation and admin enrollment.
+    * `sharemeister:import` - Bulk import local directories into a user's account.
+    * `sharemeister:clear-user-storage` - Maintenance command to wipe user data via email.
+* **Telemetry API:** `/api/health` endpoint for monitoring instance status and disk health.
+* **Fortify Integration:** Robust authentication flow including password resets and email verification.
 
-## Deployment
+## 📦 Deployment & Installation
 
-TODO
+### 1. Requirements
+* PHP 8.2+
+* MariaDB / MySQL
+* Composer
+* A Linux host (Ubuntu/Debian recommended) or a Container environment.
 
-## How it works
+### 2. Guided Installation
+The easiest way to set up your instance is via the terminal. This instance is protected by a **Setup Guard**; the web interface will not be accessible until an administrator is created via the CLI.
 
-The basic idea is the following: A user creates an account on the website and creates an API key. With the API key, the user can upload screenshots to the endpoint. The screenshots are then saved on the server and the server returns a share URL which you can paste in Discord, TeamSpeak, forums, etc.
+```bash
+# Clone the repository
+git clone [https://github.com/flymia/sharemeister.git](https://github.com/flymia/sharemeister.git)
+cd sharemeister
 
-Every screenshot gets a UUID, which is saved in the database. The database also keeps track of basic information about the screenshot.
+# Install dependencies
+composer install
 
+# Configure environment
+cp .env.example .env
+php artisan key:generate
 
-## Contributing
+# Run the Virtual Cockpit Setup
+php artisan sharemeister:install
+```
 
-Contributions are very welcome on this project, as I don't have the neccessary experience to build full stack websites with Laravel. I'm primarily a sysadmin and not a developer. That's why the code will look janky sometimes.
+The `sharemeister:install` command will guide you through naming your instance, creating the primary Admin account, and setting default storage limits.
 
-### Setting up dev environment using containers
+## 🏗️ Development Environment
+We provide a containerized setup for rapid development.
 
-* Install Docker / Podman
-* Build the sharemeister Dev docker image, which is located under `Docker/Dockerfile` using `$ cd Docker; docker build . -t sharemeister-app:dev`
-* Create the docker network, which is needed for internal container communication: `$ docker network create sharemeister`
-* In the main folder, copy the `.env.example` to `.env`
-* Run the docker-compose.yml which is also located in the Docker folder using `$ cd Docker; docker-compose up -d`. These containers are the database, dev mail server and phpMyAdmin.
-* Run php artisan commands using the newly built container: `$ docker run -it --rm --network sharemeister -u $(id -u):$(id -g) -v $(pwd):/app -p 8000:8000 sharemeister-app:dev bash`
-* Install the composer components: `$ composer install`
-* Run the migrations and seed the db with example data: `$ php artisan migrate && php artisan db:seed`
+1. Build Image: `cd Docker && docker build . -t sharemeister-app:dev`
+2. Network: `docker network create sharemeister`
+3. Environment: Copy .env.example to .env in the root.
+4. Spin Up Services: `cd Docker && docker-compose up -d (Database, MailHog, phpMyAdmin)`.
+5. Run the workspace: 
+```bash
+docker run -it --rm --network sharemeister \
+  -u $(id -u):$(id -g) \
+  -v $(pwd):/app -p 8000:8000 \
+  sharemeister-app:dev bash
+```
+6. Initialize: `php artisan migrate --seed`
+7. Install: `php sharemeister:install`
 
-Notice: When you run a dev container, please use `$ php artisan serve --host="0.0.0.0"` as command.
+## 📡 API & Metrics
+
+Sharemeister provides a health endpoint for monitoring tools (Grafana/Prometheus/Zabbix):
+
+`GET /api/health`
+
+```json
+{
+  "instance_name": "My-Private-Vault",
+  "status": "ok",
+  "metrics": {
+    "total_storage_used_mb": 1240.5,
+    "disk_free_space_gb": 45.2
+  },
+  "health": {
+    "database": "healthy",
+    "storage_writable": true
+  }
+}
+```
+
+🤝 Contributing
+
+While I love building this tool, my background is more in infrastructure than full-stack development. If you find the code a bit "sysadmin-flavored" (utilitarian), contributions to refine the Laravel patterns are more than welcome!
+
+Created with ❤️ for the self-hosting community.
