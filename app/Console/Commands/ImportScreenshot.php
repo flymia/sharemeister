@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\File;
 
 class ImportScreenshot extends Command
 {
-    protected $signature = 'app:import-screenshot {path} {useremail}';
-    protected $description = 'Import screenshots from a path to a user account and move them to storage.';
+    protected $signature = 'sharemeister:import {path : Source directory} {useremail : Target user email}';
+    protected $description = 'Import screenshots from a local path into a user account';
 
     public function handle()
     {
@@ -24,24 +24,26 @@ class ImportScreenshot extends Command
         }
 
         if (!is_dir($sourcePath)) {
-            $this->error("Error: Path is not a directory.");
+            $this->error("Error: Path '{$sourcePath}' is not a directory.");
             return 1;
         }
 
         $files = File::files($sourcePath);
         $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        
+        $this->info("Scanning " . count($files) . " files...");
 
         foreach ($files as $file) {
             $mimeType = File::mimeType($file);
 
             if (!in_array($mimeType, $allowedMimeTypes)) {
-                $this->warn("Skipping: {$file->getFilename()} (Invalid Mime)");
+                $this->warn("Skipping: {$file->getFilename()} (Invalid Mime: {$mimeType})");
                 continue;
             }
 
-            // 1. Logic from Controller: generate path and name
             $folderPath = 'screenshots/' . date('Y/m/d') . '/';
             $extension = $file->getExtension();
+            $fileSizeKb = round(File::size($file) / 1024);
             
             do {
                 $newFilename = str()->random(8) . '.' . $extension;
@@ -49,20 +51,20 @@ class ImportScreenshot extends Command
 
             $targetPath = $folderPath . $newFilename;
 
-            // 2. Physically copy file to Laravel Storage (storage/app/public/...)
-            // We use 'put' to write the content directly
+            // Copy to storage
             Storage::disk('public')->put($targetPath, File::get($file));
 
-            // 3. Database entry
+            // Create record with file_size_kb for the quota system
             Screenshot::create([
                 'uploader_id' => $user->id,
                 'image' => $targetPath,
+                'file_size_kb' => $fileSizeKb,
             ]);
 
-            $this->info("Imported: {$file->getFilename()} -> {$targetPath}");
+            $this->line("Imported: {$file->getFilename()} (" . $fileSizeKb . " KB)");
         }
 
-        $this->info("Import completed.");
+        $this->info("Import completed successfully.");
         return 0;
     }
 }
