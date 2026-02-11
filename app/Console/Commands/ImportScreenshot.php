@@ -5,59 +5,64 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Screenshot;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
-
 
 class ImportScreenshot extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'app:import-screenshot {path} {useremail}';
+    protected $description = 'Import screenshots from a path to a user account and move them to storage.';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Import all screenshots in a specific path to a users account.';
-
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
-        $directory = $this->argument('path');
+        $sourcePath = $this->argument('path');
+        $user = User::where('email', $this->argument('useremail'))->first();
 
-        if (!is_dir($directory) || !is_readable($directory)) {
-            $this->fail("Error: Directory is either missing or not readable.");
-        }        
-        
-        // Check if the provided user exists
-        if(!User::where('email', 'like', $this->argument('useremail'))->first()) {
-            $this->fail("Error: Could not find the specific user by provided email.");
+        if (!$user) {
+            $this->error("Error: User not found.");
+            return 1;
         }
 
-        $files = File::files($directory);
+        if (!is_dir($sourcePath)) {
+            $this->error("Error: Path is not a directory.");
+            return 1;
+        }
+
+        $files = File::files($sourcePath);
         $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
 
         foreach ($files as $file) {
             $mimeType = File::mimeType($file);
 
             if (!in_array($mimeType, $allowedMimeTypes)) {
-                $this->warn("Invalid file detected: {$file->getFilename()} ({$mimeType})");
-            } else {
-                $this->info("Importing valid image: {$file->getFilename()} ({$mimeType})");
-                Screenshot::create([
-                    'uploader_id' => User::where('email', 'like', $this->argument('useremail'))->first()?->id,
-                    'image' => 'public/' . $file->getFilename(),
-                ]);
+                $this->warn("Skipping: {$file->getFilename()} (Invalid Mime)");
+                continue;
             }
+
+            // 1. Logic from Controller: generate path and name
+            $folderPath = 'screenshots/' . date('Y/m/d') . '/';
+            $extension = $file->getExtension();
+            
+            do {
+                $newFilename = str()->random(8) . '.' . $extension;
+            } while (Screenshot::where('image', 'like', "%$newFilename")->exists());
+
+            $targetPath = $folderPath . $newFilename;
+
+            // 2. Physically copy file to Laravel Storage (storage/app/public/...)
+            // We use 'put' to write the content directly
+            Storage::disk('public')->put($targetPath, File::get($file));
+
+            // 3. Database entry
+            Screenshot::create([
+                'uploader_id' => $user->id,
+                'image' => $targetPath,
+            ]);
+
+            $this->info("Imported: {$file->getFilename()} -> {$targetPath}");
         }
 
-        $this->info("Completed scan.");
+        $this->info("Import completed.");
         return 0;
     }
 }
