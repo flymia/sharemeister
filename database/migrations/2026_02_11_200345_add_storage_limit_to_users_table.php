@@ -12,9 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // -1 steht für "unendlich / infinite"
-            // Default: 5120 MB (5 GB)
-            $table->bigInteger('storage_limit_mb')->default(5120);
+            $table->bigInteger('storage_limit_mb')->default(150);
         });
     }
 

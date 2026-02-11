@@ -19,8 +19,8 @@
 <body class="d-flex flex-column min-vh-100">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{{ route('dashboard') }}">
-                <i class="bi bi-camera-fill me-2 text-primary"></i> Sharemeister
+            <a class="navbar-brand d-flex align-items-center" href="{{ route('landing') }}">
+                <i class="bi bi-camera-fill me-2 text-primary"></i>Sharemeister
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>

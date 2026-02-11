@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('landing.index');
-});
+})->name('landing');
 
 // Authenticated and Verified Routes
 Route::middleware(['auth', 'verified'])->group(function () {
