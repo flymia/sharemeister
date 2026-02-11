@@ -4,6 +4,11 @@ use App\Http\Controllers\ScreenshotController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
+
+Route::get('/setup-required', function () {
+    return view('errors.setup');
+})->name('setup.required');
+
 Route::get('/', function () {
     return view('landing.index');
 })->name('landing');

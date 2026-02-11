@@ -31,10 +31,20 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
         ])->validate();
 
+        // Check if this is the first user of this Sharemeister instance
+        $isFirstUser = User::count() === 0;
+
         return User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => Hash::make($input['password']),
+            
+            // Enrollment Logic
+            'is_admin' => $isFirstUser, 
+            
+            // Storage Quota Logic
+            // First user gets Infinite (-1), others get 5GB (5120 MB)
+            'storage_limit_mb' => $isFirstUser ? -1 : 5120,
         ]);
     }
 }
