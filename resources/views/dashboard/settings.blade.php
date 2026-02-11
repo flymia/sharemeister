@@ -1,113 +1,125 @@
 @extends('layouts.userbase')
 @section('title', 'Account Settings')
+
 @section('content')
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="mb-5">
+            <h1 class="display-6 fw-bold">Settings</h1>
+            <p class="text-muted">Manage your profile, security, and API access.</p>
+        </div>
 
-    <div class="container mt-4 d-flex justify-content-center"> <!-- Center content within the container -->
-        <div style="max-width: 800px; width: 100%;"> <!-- Responsive width to center cards -->
-            <h1 class="display-5 mb-4 text-center">Account Settings</h1>
-            <p class="text-center">Here you can update your profile details, generate an API key, and view your account statistics.</p>
-
-            <!-- Profile Details Section -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Profile Details</h5>
-                    <form action="" method="POST">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Name:</label>
-                            <input type="text" class="form-control" id="name" name="name" value="{{ $loggedUser->name }}">
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email:</label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ $loggedUser->email }}">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </form>
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <i class="bi bi-person-badge fs-3 me-3 text-primary"></i>
+                    <h5 class="card-title mb-0 fw-bold">Profile Details</h5>
                 </div>
+                <form action="#" method="POST">
+                    @csrf
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted">NAME</label>
+                            <input type="text" class="form-control" name="name" value="{{ $loggedUser->name }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted">EMAIL ADDRESS</label>
+                            <input type="email" class="form-control" name="email" value="{{ $loggedUser->email }}">
+                        </div>
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+                        </div>
+                    </div>
+                </form>
             </div>
+        </div>
 
-            <!-- API Key Section -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">API Key</h5>
-                    <p>Manage your API key.</p>
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <i class="bi bi-key fs-3 me-3 text-warning"></i>
+                    <h5 class="card-title mb-0 fw-bold">API Access</h5>
+                </div>
 
-                    @if(session('message'))
-                        <div class="alert alert-info d-flex align-items-center" role="alert">
-                            <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
+                @if(session('apikey'))
+                    <div class="alert alert-warning border-0 shadow-sm mb-4">
+                        <div class="d-flex">
+                            <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
                             <div>
-                                {{ session('message') }}
-                            </div>
-                        </div>
-                    @endif
-
-                    @if(session('userHasAPIKey'))
-                        <div class="alert alert-info d-flex align-items-center" role="alert">
-                            <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
-                            <div>
-                                You already created an API key on <b>{{ session('apiKeyCreatedAt') }}</b>. The API key only shows once on creation. If you lost your old one, please delete the current API key and create a new one.
-                            </div>
-                        </div>
-
-                        <form action="{{ route('account.settings.deleteapikey') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn btn-danger">Delete API key</button>
-                        </form>
-                    @else
-                        @if(session('apikey'))
-                            <div class="alert alert-info d-flex align-items-center" role="alert">
-                                <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
-                                <div>
-                                    <p>Successfully generated API key. Be sure to save this key somewhere. It will only show once!</p>
-
-                                    <p class="d-inline-flex gap-1">
-                                        <a class="" data-bs-toggle="collapse" href="#apiCollapse" role="button" aria-expanded="false" aria-controls="apiCollapse">
-                                            Show Key
-                                        </a>
-                                    </p>
-                                    <div class="collapse" id="apiCollapse">
-                                        <div class="card card-body">
-                                            <span id="apiKey" style="cursor: pointer; color: blue; text-decoration: underline;">adopkwapodkawdopkadwop</span>
-                                            <small id="copyFeedback" style="display: none; color: green; font-style: italic;">Copied to clipboard!</small>
-                                        </div>
-                                    </div>
+                                <strong class="d-block">Important: Your New API Key</strong>
+                                <p class="small mb-2 text-dark">Copy this key now. For security reasons, we won't show it to you again!</p>
+                                <div class="input-group">
+                                    <input type="text" class="form-control font-monospace border-0 shadow-sm" id="apiKeyDisplay" value="{{ session('apikey') }}" readonly>
+                                    <button class="btn btn-dark" onclick="copyKey()">
+                                        <i class="bi bi-clipboard me-1"></i> Copy
+                                    </button>
                                 </div>
                             </div>
-                        @endif
+                        </div>
+                    </div>
+                @endif
 
-                            <form action="{{ route('account.settings.generateapikey') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="btn btn-warning">Generate API Key</button>
-                            </form>
-                    @endif
-                </div>
+                @if($loggedUser->tokens->isNotEmpty())
+                    <div class="p-3 bg-light rounded d-flex justify-content-between align-items-center border">
+                        <div>
+                            <span class="badge bg-success mb-1">Active Key Found</span>
+                            <div class="small text-muted">Last used: {{ $loggedUser->tokens->first()->last_used_at?->diffForHumans() ?? 'Never' }}</div>
+                        </div>
+                        <form action="{{ route('account.settings.deleteapikey') }}" method="POST" onsubmit="return confirm('Delete API Key? All connected apps will stop working!')">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-trash3 me-1"></i> Revoke Key
+                            </button>
+                        </form>
+                    </div>
+                @else
+                    <div class="text-center py-3">
+                        <p class="text-muted small">No API key generated yet. Generate one to use ShareX.</p>
+                        <form action="{{ route('account.settings.generateapikey') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-warning shadow-sm fw-bold">
+                                <i class="bi bi-plus-circle me-1"></i> Generate API Key
+                            </button>
+                        </form>
+                    </div>
+                @endif
             </div>
+        </div>
 
-            <!-- Account Statistics Section -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Account Statistics</h5>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><strong>Account creation date:</strong> {{ $loggedUser->created_at->format('Y-m-d') }}</li>
-                        <li class="list-group-item"><strong>Uploaded screenshots:</strong> {{ $loggedUser->screenshots()->count() }}</li>
-                        <li class="list-group-item"><strong>Total file size:</strong> {{ $loggedUser->screenshots->sum('file_size_kb') }} KB</li>
-                    </ul>
+        <div class="card shadow-sm border-0 bg-dark text-white p-2">
+            <div class="card-body">
+                <h6 class="text-uppercase small fw-bold text-muted mb-4">Account Stats</h6>
+                <div class="row text-center">
+                    <div class="col-4 border-end border-secondary">
+                        <div class="h4 mb-0 fw-bold">{{ $loggedUser->created_at->format('M Y') }}</div>
+                        <div class="extra-small text-muted">Member Since</div>
+                    </div>
+                    <div class="col-4 border-end border-secondary">
+                        <div class="h4 mb-0 fw-bold">{{ $loggedUser->screenshots()->count() }}</div>
+                        <div class="extra-small text-muted">Total Uploads</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="h4 mb-0 fw-bold">{{ round($loggedUser->screenshots->sum('file_size_kb') / 1024, 1) }} MB</div>
+                        <div class="extra-small text-muted">Used Storage</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        document.getElementById("apiKey").onclick = function() {
-            const apiKey = document.getElementById("apiKey").textContent;
-            navigator.clipboard.writeText(apiKey).then(() => {
-                const feedback = document.getElementById("copyFeedback");
-                feedback.style.display = "inline";
-                setTimeout(() => { feedback.style.display = "none"; }, 2000); // Hide feedback after 2 seconds
-            }).catch(err => {
-                console.error('Failed to copy text: ', err);
-            });
-        }
-    </script>
+<style>
+    .font-monospace { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace !important; }
+    .extra-small { font-size: 0.7rem; }
+</style>
 
+<script>
+    function copyKey() {
+        const keyInput = document.getElementById("apiKeyDisplay");
+        keyInput.select();
+        navigator.clipboard.writeText(keyInput.value).then(() => {
+            alert("API Key copied to clipboard!");
+        });
+    }
+</script>
 @endsection

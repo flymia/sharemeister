@@ -40,44 +40,45 @@ class ScreenshotController extends Controller
         return view('screenshot.upload');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+ /**
+ * Store multiple resources in storage.
+ */
+public function store(Request $request)
+{
+    // 1. Validation for an array of images
+    $request->validate([
+        'image' => 'required|array',
+        'image.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+    ]);
 
-        // Directory structure with year/month/day for the filesystem
-        $folderPath = 'screenshots/' . date('Y/m/d') . '/';
+    $uploadedCount = 0;
+    $folderPath = 'screenshots/' . date('Y/m/d') . '/';
 
-        // Generate a random filename
-        $imageName = str()->random(8) . '.' . $request->image->extension();
+    // 2. Loop through each file
+    foreach ($request->file('image') as $file) {
+        $imageName = str()->random(8) . '.' . $file->extension();
 
-        // Check if the filename exists and generate a new one if necessary
-        while (Screenshot::query()->where('image', '=', $imageName)->exists()) {
-            $imageName = str()->random(8) . '.' . $request->image->extension();
+        // Prevent collisions
+        while (Screenshot::where('image', 'like', "%$imageName")->exists()) {
+            $imageName = str()->random(8) . '.' . $file->extension();
         }
 
-        // Move the image to the `storage/app/public/screenshots/...` folder
-        $request->image->storeAs($folderPath, $imageName); // 'public/' removed
+        // 3. Store the file on 'public' disk
+        $file->storeAs($folderPath, $imageName, 'public');
 
-        // Store the relative path in the database
-        $screenshot = new Screenshot();
-        $screenshot->image = $folderPath . $imageName; // Relative path in the DB
-        $screenshot->uploader_id = Auth::id();
-        $screenshot->save();
-
-        // Generate the public link
-        $publicLink = route('screenshot.show', ['filename' => $imageName]);
-
-        // Store the link in the session and redirect
-        return redirect()->route('screenshot.upload')->with([
-            'success' => 'Screenshot uploaded successfully.',
-            'public_link' => $publicLink,
+        // 4. Create DB record
+        Screenshot::create([
+            'image' => $folderPath . $imageName,
+            'uploader_id' => Auth::id(),
         ]);
+
+        $uploadedCount++;
     }
+
+    return redirect()->route('screenshot.upload')->with([
+        'success' => "$uploadedCount screenshots uploaded successfully.",
+    ]);
+}
 
     /**
      * Displays the screenshot detail page

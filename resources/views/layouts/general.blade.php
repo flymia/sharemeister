@@ -3,31 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>@yield('title')</title>
-
-    <!-- TODO: Favicon -->
-
-    <!-- TODO: LOCAL Delivery of these objects. I don't want to stream them from the cloud. This is just for dev! -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery@4.0.0/dist/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <title>Sharemeister - @yield('title')</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root { --sidebar-width: 240px; }
+        body { background-color: #f8f9fa; font-family: 'Inter', -apple-system, sans-serif; }
+        .navbar-brand { font-weight: 800; letter-spacing: -0.5px; }
+        .card { border: none; transition: all 0.2s ease; }
+        .footer { background: #1a1d20; }
+    </style>
 </head>
-
 <body class="d-flex flex-column min-vh-100">
-    <!-- Main Content -->
-    <div class="container mt-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ route('dashboard') }}">
+                <i class="bi bi-camera-fill me-2 text-primary"></i> Sharemeister
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-5">
         @yield('content')
-    </div>
+    </main>
+
+    <footer class="footer text-white-50 mt-auto py-4">
+        <div class="container text-center">
+            <small>Sharemeister v0.0.1 &bull; Built with Laravel &bull; <a href="https://github.com/flymia/Sharemeister/" class="text-white-50">GitHub</a></small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 </body>
-
-<!-- Footer -->
-<footer class="bg-dark text-white mt-auto py-3">
-    <div class="container text-center">
-        <small>Sharemeister Version v0.0.1 | <a href="https://www.github.com/flymia/Sharemeister/" class="text-decoration-none text-white">GitHub</a></small>
-    </div>
-</footer>
-
 </html>

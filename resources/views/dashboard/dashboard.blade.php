@@ -5,7 +5,7 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
-            <h1 class="h3 mb-0 text-gray-800">Welcome back, {{ Auth::user()->name }}</h1>
+            <h1 class="display-6 fw-bold mb-0">Welcome back, {{ Auth::user()->name }}</h1>
             <p class="text-muted">Here is what's happening with your screenshots.</p>
         </div>
     </div>

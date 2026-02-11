@@ -2,41 +2,83 @@
 @section('title', 'Screenshot Details')
 
 @section('content')
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <a href="{{ route('screenshot.list') }}" class="btn btn-sm btn-link text-decoration-none text-muted mb-3">
+            <i class="bi bi-arrow-left"></i> Back to Library
+        </a>
 
-    <div class="d-flex justify-content-center mt-5">
-        <div class="card shadow-lg border-0" style="max-width: 800px; border-radius: 12px;">
-            <div class="card-body p-4">
-                <h2 class="card-title text-center mb-4">Details</h2>
-
-                <!-- Screenshot Image -->
-                <div class="text-center mb-4">
-                    <a href="{{ $screenshot->publicURL }}" target="_blank">
-                        <img src="{{ $screenshot->publicURL }}" class="img-fluid rounded"
-                             alt="Screenshot" style="cursor: pointer; max-height: 500px; width: auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-                    </a>
+        <div class="card shadow-sm border-0 overflow-hidden">
+            <div class="row g-0">
+                <div class="col-md-8 bg-dark d-flex align-items-center justify-content-center" style="min-height: 400px;">
+                    <img src="{{ $screenshot->publicURL }}" class="img-fluid shadow" alt="Screenshot" style="max-height: 80vh;">
                 </div>
 
-                <!-- Metadata Section -->
-                <div class="bg-light p-3 rounded mb-4" style="box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
-                    <h5 class="text-muted mb-3">Metadata</h5>
-                    <p class="mb-1"><strong>Upload Time:</strong> {{ $screenshot->created_at->format('d M Y, H:i') }}</p>
-                    <p class="mb-0"><strong>Size:</strong> {{ $screenshot->file_size_kb }} KB</p>
-                    <p class="mb-0"><strong>Screenshot-UUID:</strong> <i>{{ $screenshot->id }}</i></p>
-                </div>
+                <div class="col-md-4 p-4 bg-white border-start">
+                    <h4 class="fw-bold mb-4">Properties</h4>
+                    
+                    <div class="mb-4">
+                        <label class="text-muted small text-uppercase fw-bold">File Name</label>
+                        <p class="text-truncate">{{ basename($screenshot->image) }}</p>
+                    </div>
 
-                <!-- Delete Button -->
-                <div class="text-center">
-                    <form action="{{ route('screenshot.delete', $screenshot->id )}}" method="POST">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-lg px-4"
-                                style="border-radius: 30px; box-shadow: 0 3px 8px rgba(255, 0, 0, 0.3);">
-                            Delete
-                        </button>
-                    </form>
+                    <div class="mb-4">
+                        <label class="text-muted small text-uppercase fw-bold">Public URL</label>
+                        <div class="input-group input-group-sm mt-1">
+                            <input type="text" class="form-control" value="{{ $screenshot->publicURL }}" id="urlInput" readonly>
+                            <button class="btn btn-outline-secondary" onclick="copyUrl()">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex flex-column gap-3 mb-5">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-calendar3 me-3 text-primary"></i>
+                            <div>
+                                <small class="text-muted d-block">Uploaded on</small>
+                                <strong>{{ $screenshot->created_at->format('d M Y, H:i') }}</strong>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-hdd me-3 text-primary"></i>
+                            <div>
+                                <small class="text-muted d-block">File Size</small>
+                                <strong>{{ $screenshot->file_size_kb }} KB</strong>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-fingerprint me-3 text-primary"></i>
+                            <div>
+                                <small class="text-muted d-block">UUID</small>
+                                <code class="small">{{ $screenshot->id }}</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid pt-4 border-top">
+                        <form action="{{ route('screenshot.delete', $screenshot->id )}}" method="POST" onsubmit="return confirm('Are you sure? This cannot be undone.')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="bi bi-trash3 me-2"></i>Delete Screenshot
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
+<script>
+    function copyUrl() {
+        const copyText = document.getElementById("urlInput");
+        copyText.select();
+        navigator.clipboard.writeText(copyText.value);
+        alert("Link copied!");
+    }
+</script>
 @endsection

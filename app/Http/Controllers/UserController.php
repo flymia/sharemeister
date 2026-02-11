@@ -29,24 +29,26 @@ class UserController extends Controller
         return view('dashboard.settings', ['loggedUser' => $loggedUser]);
     }
 
-    public function generateapikey(Request $request) {
+    public function generateApiKey(Request $request)
+    {
         $user = $request->user();
+        
+        // 1. Delete existing tokens if you only want one active key
+        $user->tokens()->delete();
 
-        // check if the user already has a token
-        $existingToken = $user->tokens()->where('name', 'uploadkey')->first();
+        // 2. Create new token
+        $token = $user->createToken('sharex-api-key')->plainTextToken;
 
-        if ($existingToken) {
-            return redirect('/account/settings')->with('message', 'You already have an API key!');
-        }
-
-        // create new token if none exists
-        $token = $user->createToken('uploadkey');
-
-        return redirect('/account/settings')->with('apikey', $token->plainTextToken);
+        return back()->with([
+            'apikey' => $token,
+            'message' => 'New API key generated.'
+        ]);
     }
 
-    public function deleteapikey(Request $request) {
-
+    public function deleteApiKey(Request $request)
+    {
+        $request->user()->tokens()->delete();
+        return back()->with('message', 'API key deleted. Apps using this key will no longer work.');
     }
 
 }
