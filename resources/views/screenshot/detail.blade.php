@@ -14,7 +14,7 @@
                     <img src="{{ $screenshot->publicURL }}" class="img-fluid shadow" alt="Screenshot" style="max-height: 80vh;">
                 </div>
 
-                <div class="col-md-4 p-4 bg-white border-start">
+                <div class="col-md-4 p-4 border-start">
                     <h4 class="fw-bold mb-4">Properties</h4>
                     
                     <div class="mb-4">
