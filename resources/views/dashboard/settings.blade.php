@@ -15,16 +15,25 @@
                     <i class="bi bi-person-badge fs-3 me-3 text-primary"></i>
                     <h5 class="card-title mb-0 fw-bold">Profile Details</h5>
                 </div>
-                <form action="#" method="POST">
+
+                @if(session('message') && !session('apikey'))
+                    <div class="alert alert-success border-0 shadow-sm mb-3">
+                        <i class="bi bi-check-circle me-2"></i> {{ session('message') }}
+                    </div>
+                @endif
+
+                <form action="{{ route('account.settings.update') }}" method="POST">
                     @csrf
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="small fw-bold text-muted">NAME</label>
-                            <input type="text" class="form-control" name="name" value="{{ $loggedUser->name }}">
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name', $loggedUser->name) }}">
+                            @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="small fw-bold text-muted">EMAIL ADDRESS</label>
-                            <input type="email" class="form-control" name="email" value="{{ $loggedUser->email }}">
+                            <input type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email', $loggedUser->email) }}">
+                            @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-12 mt-4">
                             <button type="submit" class="btn btn-primary px-4">Save Changes</button>
@@ -60,7 +69,7 @@
                 @endif
 
                 @if($loggedUser->tokens->isNotEmpty())
-                    <div class="p-3 bg-light rounded d-flex justify-content-between align-items-center border">
+                    <div class="p-3 rounded d-flex justify-content-between align-items-center border">
                         <div>
                             <span class="badge bg-success mb-1">Active Key Found</span>
                             <div class="small text-muted">Last used: {{ $loggedUser->tokens->first()->last_used_at?->diffForHumans() ?? 'Never' }}</div>

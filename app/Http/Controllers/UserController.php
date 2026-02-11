@@ -51,4 +51,30 @@ class UserController extends Controller
         return back()->with('message', 'API key deleted. Apps using this key will no longer work.');
     }
 
+    public function update(Request $request)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            // regex: erlaubt Buchstaben, Leerzeichen, Punkte, Apostrophe und Bindestriche
+            'name' => [
+                'required', 
+                'string', 
+                'max:255', 
+                'regex:/^[\p{L}\p{M}\s.\'-]+$/u'
+            ],
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+        ], [
+            'name.regex' => 'Der Name enthält ungültige Zeichen oder Emojis. Bitte nur Text verwenden.',
+        ]);
+
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
+
+        return back()->with('message', 'Profil erfolgreich aktualisiert.');
+    }
+
+
 }

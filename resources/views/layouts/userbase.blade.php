@@ -1,5 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
+    
+<script>
+    (() => {
+      'use strict'
+      const getStoredTheme = () => localStorage.getItem('theme')
+      const setStoredTheme = theme => localStorage.setItem('theme', theme)
+
+      const getPreferredTheme = () => {
+        const storedTheme = getStoredTheme()
+        if (storedTheme) {
+          return storedTheme
+        }
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      }
+
+      const setTheme = theme => {
+        if (theme === 'auto') {
+          document.documentElement.setAttribute('data-bs-theme', (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
+        } else {
+          document.documentElement.setAttribute('data-bs-theme', theme)
+        }
+      }
+
+      setTheme(getPreferredTheme())
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        const storedTheme = getStoredTheme()
+        if (storedTheme !== 'light' && storedTheme !== 'dark') {
+          setTheme(getPreferredTheme())
+        }
+      })
+    })()
+</script>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +48,18 @@
         .navbar-brand { font-weight: 800; letter-spacing: -0.5px; }
         .card { border: none; transition: all 0.2s ease; }
         .footer { background: #1a1d20; }
+
+        /* Falls du spezifische Farben für den Darkmode anpassen willst */
+        [data-bs-theme="dark"] body {
+            background-color: #121212; /* Etwas dunkler als der Standard-Grey */
+        }
+
+        /* Deine Karten-Styles brauchen evtl. Anpassung für Darkmode */
+        [data-bs-theme="dark"] .card {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+        }
+
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
@@ -52,7 +98,7 @@
         @yield('content')
     </main>
 
-    <footer class="footer text-white-50 mt-auto py-4">
+    <footer class="bg-body-tertiary text-body-secondary mt-auto py-4 border-top">
         <div class="container text-center">
             <small>Sharemeister v0.0.1 &bull; Built with Laravel &bull; <a href="https://github.com/flymia/Sharemeister/" class="text-white-50">GitHub</a></small>
         </div>

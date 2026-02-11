@@ -65,24 +65,48 @@
     </div>
 </div>
 
+
 <style>
+    /* Die Upload-Zone nutzt nun Variablen statt fester Farben */
     .upload-area {
-        border: 2px dashed #dee2e6;
+        border: 2px dashed var(--bs-border-color);
         border-radius: 1rem;
         transition: all 0.2s ease;
         cursor: pointer;
-        background-color: #f8f9fa;
+        background-color: var(--bs-tertiary-bg); /* Passt sich an */
     }
+    
     .upload-area:hover, .upload-area.dragover {
-        border-color: #0d6efd;
-        background-color: #f0f7ff;
+        border-color: var(--bs-primary);
+        background-color: var(--bs-primary-bg-subtle);
     }
-    .upload-icon {
-        transition: transform 0.3s ease;
+
+    /* Badge in der Upload-Zone korrigieren */
+    .upload-area .badge {
+        background-color: var(--bs-secondary-bg) !important;
+        color: var(--bs-secondary-color) !important;
+        border: 1px solid var(--bs-border-color) !important;
     }
-    .upload-area:hover .upload-icon {
-        transform: translateY(-5px);
+
+    /* Screenshot-Cards in der Liste */
+    .screenshot-card {
+        background-color: var(--bs-card-bg);
+        color: var(--bs-body-color);
     }
+
+    /* Icons in der Liste/Details */
+    .bi {
+        /* Falls Icons zu blass sind, geben wir ihnen eine Standard-Farbe des Themes */
+        color: var(--bs-body-color);
+    }
+    
+    .text-primary .bi, .btn .bi {
+        color: inherit; /* Icons in Buttons oder blauen Texten behalten deren Farbe */
+    }
+
+    .extra-small { font-size: 0.75rem; }
+    .object-fit-cover { object-fit: cover; }
+    .transition { transition: all 0.2s ease-in-out; }
 </style>
 
 <script>

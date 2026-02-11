@@ -35,7 +35,7 @@
                 <div class="card-body p-3">
                     <div class="mb-2">
                         <p class="text-truncate small fw-bold mb-0">{{ basename($scr->image) }}</p>
-                        <span class="text-muted extra-small">
+                        <span class="text-body-secondary extra-small">
                             <i class="bi bi-calendar3 me-1"></i> {{ $scr->created_at->diffForHumans() }}
                         </span>
                     </div>
