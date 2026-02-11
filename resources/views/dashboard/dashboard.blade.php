@@ -10,24 +10,48 @@
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm p-3">
-                <div class="text-muted small text-uppercase fw-bold">Total Uploads</div>
-                <div class="h4 mb-0 fw-bold text-primary">
-                    <i class="bi bi-images me-2"></i>{{ $totalCount }}
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm p-3">
-                <div class="text-muted small text-uppercase fw-bold">Storage Used</div>
-                <div class="h4 mb-0 fw-bold text-primary">
-                    <i class="bi bi-hdd-network me-2"></i>{{ $totalSize }} MB
-                </div>
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-3 h-100">
+            <div class="text-muted small text-uppercase fw-bold">Total Uploads</div>
+            <div class="h4 mb-0 fw-bold text-primary">
+                <i class="bi bi-images me-2"></i>{{ $totalCount }}
             </div>
         </div>
     </div>
+
+    <div class="col-md-6"> <div class="card border-0 shadow-sm p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <div class="text-muted small text-uppercase fw-bold">Storage Usage</div>
+                <div class="small fw-bold {{ $usagePercent > 90 ? 'text-danger' : 'text-muted' }}">
+                    {{ $totalSize }} MB / {{ $limit == -1 ? '∞' : $limit . ' MB' }}
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <div class="h4 mb-0 fw-bold text-primary">
+                    <i class="bi bi-hdd-network me-2"></i>{{ $totalSize }} MB
+                </div>
+                
+                <div class="flex-grow-1">
+                    @if($limit != -1)
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar {{ $usagePercent > 90 ? 'bg-danger' : 'bg-primary' }}" 
+                                 role="progressbar" 
+                                 style="width: {{ $usagePercent }}%"
+                                 aria-valuenow="{{ $usagePercent }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100"></div>
+                        </div>
+                        <div class="extra-small text-muted mt-1 text-end">{{ $usagePercent }}% used</div>
+                    @else
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">Infinite Storage</span>
+                    @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     <h5 class="mb-3 fw-bold">Recent Activity</h5>
     

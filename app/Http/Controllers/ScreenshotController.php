@@ -15,22 +15,33 @@ class ScreenshotController extends Controller
      */
     private function handleUpload($file)
     {
-        $folderPath = 'screenshots/' . date('Y/m/d') . '/';
-        $imageName = str()->random(8) . '.' . $file->extension();
+        $user = auth()->user();
+        $fileSizeKb = round($file->getSize() / 1024);
+        $fileSizeMb = $fileSizeKb / 1024;
 
-        // Kollisionsprüfung für den Dateinamen
-        while (Screenshot::where('image', 'like', "%$imageName")->exists()) {
-            $imageName = str()->random(8) . '.' . $file->extension();
+        // 1. Aktuellen Verbrauch berechnen
+        $currentUsageKb = \App\Models\Screenshot::where('uploader_id', $user->id)->sum('file_size_kb');
+        $currentUsageMb = $currentUsageKb / 1024;
+
+        // 2. Limit prüfen (wenn nicht -1)
+        if ($user->storage_limit_mb != -1) {
+            if (($currentUsageMb + $fileSizeMb) > $user->storage_limit_mb) {
+                // Wir werfen eine Exception, die Laravel automatisch abfängt 
+                // oder wir nutzen abort()
+                abort(403, 'Storage limit reached. Delete some screenshots or upgrade your plan.');
+            }
         }
 
-        // Speichern auf dem 'public' Disk
+        // ... (restliche Logik wie vorher)
+        $folderPath = 'screenshots/' . date('Y/m/d') . '/';
+        $imageName = str()->random(8) . '.' . $file->extension();
+        
         $file->storeAs($folderPath, $imageName, 'public');
 
-        // Datenbankeintrag erstellen
-        return Screenshot::create([
+        return \App\Models\Screenshot::create([
             'image' => $folderPath . $imageName,
-            'uploader_id' => Auth::id(),
-            'file_size_kb' => round($file->getSize() / 1024),
+            'uploader_id' => $user->id,
+            'file_size_kb' => $fileSizeKb,
         ]);
     }
 
@@ -135,25 +146,38 @@ class ScreenshotController extends Controller
         return redirect()->route('screenshot.list')->with('message', 'Screenshot deleted successfully.');
     }
 
-    /**
-     * Dashboard-Übersicht mit Statistiken.
-     */
     public function dashboard()
     {
         $user = Auth::user();
         
+        // 1. Die Screenshots abrufen (damit die Variable definiert ist)
         $screenshots = Screenshot::where('uploader_id', $user->id)
             ->latest()
             ->take(6)
             ->get();
 
+        // 2. Statistiken berechnen
         $totalCount = Screenshot::where('uploader_id', $user->id)->count();
         $totalSizeKb = Screenshot::where('uploader_id', $user->id)->sum('file_size_kb');
+        $totalSizeMb = round($totalSizeKb / 1024, 2);
+        
+        // 3. Limit-Logik
+        $limit = $user->storage_limit_mb;
+        $usagePercent = 0;
+        
+        if ($limit > 0) {
+            $usagePercent = round(($totalSizeMb / $limit) * 100, 2);
+            // Schutz gegen Überlauf der Progressbar (falls Limit nachträglich gesenkt wurde)
+            if ($usagePercent > 100) $usagePercent = 100;
+        }
 
+        // 4. Alles an die View übergeben
         return view('dashboard.dashboard', [
             'screenshots' => $screenshots,
             'totalCount' => $totalCount,
-            'totalSize' => round($totalSizeKb / 1024, 2)
+            'totalSize' => $totalSizeMb,
+            'limit' => $limit,
+            'usagePercent' => $usagePercent
         ]);
     }
 
