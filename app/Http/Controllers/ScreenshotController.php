@@ -7,9 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use App\Services\ScreenshotService;
 
 class ScreenshotController extends Controller
 {
+
+    public function __construct(protected ScreenshotService $service) {}
+
     /**
      * Private helper to handle the core upload logic.
      * Centralizes logic for Web, API, and RAW uploads.
@@ -17,34 +22,13 @@ class ScreenshotController extends Controller
      */
     private function handleUpload($file)
     {
-        $user = auth()->user();
-        $fileSizeKb = round($file->getSize() / 1024);
-        $fileSizeMb = $fileSizeKb / 1024;
-
-        // 1. Calculate current storage consumption
-        $currentUsageKb = Screenshot::where('uploader_id', $user->id)->sum('file_size_kb');
-        $currentUsageMb = $currentUsageKb / 1024;
-
-        // 2. Check storage limits (skip if limit is -1)
-        if ($user->storage_limit_mb != -1) {
-            if (($currentUsageMb + $fileSizeMb) > $user->storage_limit_mb) {
-                abort(403, 'Storage limit reached. Delete some screenshots or upgrade your plan.');
-            }
+        try {
+            return $this->service->handleUpload($file, auth()->user());
+        } catch (\Exception $e) {
+            abort(403, $e->getMessage());
         }
-
-        // 3. Define path with User ID subfolder for better filesystem organization
-        // Structure: screenshots/{user_id}/YYYY/MM/DD/
-        $folderPath = 'screenshots/' . $user->id . '/' . date('Y/m/d') . '/';
-        $imageName = str()->random(8) . '.' . $file->extension();
-        
-        $file->storeAs($folderPath, $imageName, 'public');
-
-        return Screenshot::create([
-            'image' => $folderPath . $imageName,
-            'uploader_id' => $user->id,
-            'file_size_kb' => $fileSizeKb,
-        ]);
     }
+
 
     /**
      * Display a list of all screenshots belonging to the user.
