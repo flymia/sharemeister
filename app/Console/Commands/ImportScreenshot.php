@@ -23,7 +23,7 @@ class ImportScreenshot extends Command
             return 1;
         }
 
-        if (!is_dir($sourcePath)) {
+        if (!File::isDirectory($sourcePath)) {
             $this->error("Error: Path '{$sourcePath}' is not a directory.");
             return 1;
         }
@@ -31,7 +31,7 @@ class ImportScreenshot extends Command
         $files = File::files($sourcePath);
         $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
         
-        $this->info("Scanning " . count($files) . " files...");
+        $this->info("Scanning " . count($files) . " files for user: " . $user->email);
 
         foreach ($files as $file) {
             $mimeType = File::mimeType($file);
@@ -41,27 +41,36 @@ class ImportScreenshot extends Command
                 continue;
             }
 
-            $folderPath = 'screenshots/' . date('Y/m/d') . '/';
+            // --- REFACTORED PATH LOGIC (Same as Controller) ---
+            $userId = $user->id;
+            $datePath = date('Y/m/d');
+            $folderPath = "screenshots/{$userId}/{$datePath}"; // Structured path
+            
             $extension = $file->getExtension();
             $fileSizeKb = round(File::size($file) / 1024);
-            
-            do {
-                $newFilename = str()->random(8) . '.' . $extension;
-            } while (Screenshot::where('image', 'like', "%$newFilename")->exists());
+            $fileSizeMb = $fileSizeKb / 1024;
 
-            $targetPath = $folderPath . $newFilename;
+            // Check Quota before importing
+            $currentUsageMb = Screenshot::where('uploader_id', $user->id)->sum('file_size_kb') / 1024;
+            if ($user->storage_limit_mb != -1 && ($currentUsageMb + $fileSizeMb) > $user->storage_limit_mb) {
+                $this->error("Quota exceeded for user {$user->email}. Stopping import.");
+                return 1;
+            }
 
-            // Copy to storage
+            $newFilename = str()->random(8) . '.' . $extension;
+            $targetPath = $folderPath . '/' . $newFilename;
+
+            // Copy to storage disk
             Storage::disk('public')->put($targetPath, File::get($file));
 
-            // Create record with file_size_kb for the quota system
+            // Create database record
             Screenshot::create([
                 'uploader_id' => $user->id,
                 'image' => $targetPath,
                 'file_size_kb' => $fileSizeKb,
             ]);
 
-            $this->line("Imported: {$file->getFilename()} (" . $fileSizeKb . " KB)");
+            $this->line("Imported: {$file->getFilename()} to {$targetPath}");
         }
 
         $this->info("Import completed successfully.");
