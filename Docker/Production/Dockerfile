@@ -6,6 +6,7 @@ RUN apk add --no-cache \
     nginx \
     libpng-dev \
     libjpeg-turbo-dev \
+    libwebp-dev \
     freetype-dev \
     zip \
     libzip-dev \
@@ -14,7 +15,7 @@ RUN apk add --no-cache \
     oniguruma-dev
 
 # Install PHP Extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \ 
     && docker-php-ext-install pdo_mysql mbstring gd zip bcmath
 
 # Configure Nginx
