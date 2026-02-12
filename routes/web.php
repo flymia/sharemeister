@@ -3,7 +3,7 @@
 use App\Http\Controllers\ScreenshotController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\HealthController;
 
 Route::get('/setup-required', function () {
     return view('errors.setup');
@@ -12,6 +12,8 @@ Route::get('/setup-required', function () {
 Route::get('/', function () {
     return view('landing.index');
 })->name('landing');
+
+Route::get('/health', HealthController::class);
 
 // Authenticated and Verified Routes
 Route::middleware(['auth', 'verified'])->group(function () {
