@@ -10,15 +10,22 @@ use Illuminate\Support\Str;
 
 class ScreenshotService
 {
-public function handleUpload($file, User $user)
-{
+    public function handleUpload($file, User $user)
+    {
         // Check if $file is a path (string) or an UploadedFile (object)
         $isPath = is_string($file);
         $fileSizeKbOriginal = $isPath 
             ? round(filesize($file) / 1024) 
             : round($file->getSize() / 1024);
         
-        // 1. Quota Check
+        // Physical File Size Limit Check
+        $maxSize = config('app.max_upload_size');
+        if ($fileSizeKbOriginal > $maxSize) {
+            // Ensure we don't process files larger than configured limit
+            throw new \Exception("File too large. Max allowed: {$maxSize} KB.");
+        }
+
+        // Quota Check
         $currentUsageKb = Screenshot::where('uploader_id', $user->id)->sum('file_size_kb');
         if ($user->storage_limit_mb != -1 && ($currentUsageKb / 1024 + $fileSizeKbOriginal / 1024) > $user->storage_limit_mb) {
             throw new \Exception('Storage limit reached.');

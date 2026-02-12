@@ -48,9 +48,11 @@
                             <div class="upload-icon mb-3">
                                 <i class="bi bi-cloud-arrow-up text-primary display-4"></i>
                             </div>
-                            <h5 class="fw-bold" id="drop-text">Drag & drop image here</h5>
+                            <h5 class="fw-bold" id="drop-text">Drag & drop images here</h5>
                             <p class="text-muted small">or click to browse from your computer</p>
-                            <span class="badge bg-light text-muted border">PNG, JPG, GIF up to 2MB</span>
+                            <span class="badge bg-light text-muted border">
+                                PNG, JPG, GIF up to {{ $maxSizeKb / 1024 }}MB
+                            </span>
                         </div>
                     </div>
 
@@ -113,45 +115,56 @@
     const dropZone = document.getElementById("drop-zone");
     const fileInput = document.getElementById("image");
     const dropText = document.getElementById("drop-text");
+    const submitBtn = document.getElementById("submitBtn");
+    
+    // Inject limit from Laravel config (KB to Bytes)
+    const MAX_SIZE_BYTES = {{ $maxSizeKb }} * 1024;
 
     dropZone.onclick = () => fileInput.click();
 
-    dropZone.onsnaddragover = (e) => { e.preventDefault(); dropZone.classList.add("dragover"); };
+    // Fix: Corrected event name 'ondragover'
+    dropZone.ondragover = (e) => { 
+        e.preventDefault(); 
+        dropZone.classList.add("dragover"); 
+    };
+    
     dropZone.ondragleave = () => dropZone.classList.remove("dragover");
+    
     dropZone.ondrop = (e) => {
         e.preventDefault();
         dropZone.classList.remove("dragover");
         if (e.dataTransfer.files.length) {
             fileInput.files = e.dataTransfer.files;
-            updateUI(e.dataTransfer.files[0]);
+            updateUI(fileInput.files);
         }
     };
 
-// Ensure the event listeners pass the entire file list
     fileInput.onchange = () => {
         if (fileInput.files.length) updateUI(fileInput.files);
     };
-    // ... also update the ondrop listener similarly
 
-// ... within updateUI function
-function updateUI(files) {
-    let totalSize = 0;
-    let tooLarge = false;
+    function updateUI(files) {
+        let tooLarge = false;
+        const limitMb = (MAX_SIZE_BYTES / 1024 / 1024).toFixed(0);
 
-    for (let file of files) {
-        totalSize += file.size;
-        if (file.size > 2 * 1024 * 1024) { // 2MB
-            tooLarge = true;
+        for (let file of files) {
+            if (file.size > MAX_SIZE_BYTES) {
+                tooLarge = true;
+                break;
+            }
+        }
+
+        if (tooLarge) {
+            // Visual warning if client-side validation fails
+            dropText.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-x-circle"></i> One or more files are over ${limitMb}MB!</span>`;
+            submitBtn.disabled = true;
+            submitBtn.classList.replace('btn-primary', 'btn-danger');
+        } else {
+            // Feedback for successful selection
+            dropText.innerHTML = `<span class="text-primary fw-bold">${files.length} file(s) selected</span>`;
+            submitBtn.disabled = false;
+            submitBtn.classList.replace('btn-danger', 'btn-primary');
         }
     }
-
-    if (tooLarge) {
-        dropText.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-x-circle"></i> One or more files are over 2MB!</span>`;
-        document.getElementById('submitBtn').disabled = true;
-    } else {
-        dropText.innerHTML = `<span class="text-primary fw-bold">${files.length} files selected</span>`;
-        document.getElementById('submitBtn').disabled = false;
-    }
-}
 </script>
 @endsection

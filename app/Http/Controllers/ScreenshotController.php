@@ -58,7 +58,9 @@ class ScreenshotController extends Controller
      */
     public function create()
     {
-        return view('screenshot.upload');
+        return view('screenshot.upload', [
+                'maxSizeKb' => config('app.max_upload_size')
+        ]);
     }
 
     /**
@@ -66,13 +68,21 @@ class ScreenshotController extends Controller
      */
     public function store(Request $request)
     {
+        // Get the limit directly from config to avoid 'Undefined variable'
+        $maxSize = (int) config('app.max_upload_size');
+
         $request->validate([
             'image' => 'required|array',
-            'image.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image.*' => [
+                'image',
+                'mimes:jpeg,png,jpg,gif',
+                "max:{$maxSize}" // English comment: The variable must be defined in THIS method
+            ],
         ]);
 
         $files = $request->file('image');
         foreach ($files as $file) {
+            // English comment: The service handles the internal logic
             $this->handleUpload($file);
         }
 
@@ -168,7 +178,7 @@ class ScreenshotController extends Controller
     public function apiUpload(Request $request)
     {
         $request->validate([
-            'image' => 'required|image|max:2048',
+            'image' => 'required|image|max:' . config('app.max_upload_size'),
         ]);
 
         $screenshot = $this->handleUpload($request->file('image'));
@@ -186,7 +196,7 @@ class ScreenshotController extends Controller
     public function apiUploadRaw(Request $request)
     {
         $request->validate([
-            'image' => 'required|image|max:2048',
+            'image' => 'required|image|max:' . config('app.max_upload_size'),
         ]);
 
         $screenshot = $this->handleUpload($request->file('image'));
