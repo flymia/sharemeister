@@ -54,9 +54,11 @@
                         </div>
                     </form>
 
-                    <div class="text-center">
-                        <p class="text-muted small">New to the platform? <a href="{{ route('register') }}" class="text-primary fw-bold text-decoration-none">Create account</a></p>
-                    </div>
+                    @if (Route::has('register') && env('ALLOW_REGISTRATION', true))
+                        <div class="text-center">
+                            <p class="text-muted small">New to the platform? <a href="{{ route('register') }}" class="text-primary fw-bold text-decoration-none">Create account</a></p>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

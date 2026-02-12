@@ -23,9 +23,12 @@
                     <a href="{{ route('login') }}" class="btn btn-primary btn-lg px-5 py-3 fw-bold rounded-3 shadow hover-up">
                         Sign In
                     </a>
+
+                    @if (Route::has('register') && env('ALLOW_REGISTRATION', true))
                     <a href="{{ route('register') }}" class="btn btn-outline-secondary btn-lg px-5 py-3 fw-bold rounded-3 hover-up">
                         Register
                     </a>
+                    @endif
                 @endauth
             </div>
         </div>
@@ -58,7 +61,7 @@
     <div class="text-center mt-5 pt-5">
         <p class="text-muted small">
             This <strong>Sharemeister instance</strong> is running in your environment. <br>
-            Need to tune the engine? Visit the 
+            Need help? Visit the 
             <a href="https://github.com/flymia/sharemeister" class="text-primary text-decoration-none fw-bold" target="_blank">
                 <i class="bi bi-github me-1"></i>Sharemeister Wiki
             </a>.

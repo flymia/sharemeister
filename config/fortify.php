@@ -144,15 +144,15 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // We wrap this in a check for our new .env variable
+        env('ALLOW_REGISTRATION', true) ? Features::registration() : null,
+        
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::updateProfileInformation(),
         Features::updatePasswords(),
         Features::twoFactorAuthentication([
-            'confirm' => true,
             'confirmPassword' => true,
-            // 'window' => 0,
         ]),
     ],
 
