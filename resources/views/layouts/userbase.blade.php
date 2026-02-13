@@ -98,11 +98,7 @@
         @yield('content')
     </main>
 
-    <footer class="bg-body-tertiary text-body-secondary mt-auto py-4 border-top">
-        <div class="container text-center">
-            <small>Sharemeister v0.0.1 &bull; Built with Laravel &bull; <a href="https://github.com/flymia/Sharemeister/" class="text-white-50">GitHub</a></small>
-        </div>
-    </footer>
+    @extends('layouts.footer')
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
