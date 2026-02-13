@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\File;
 
 class ClearUserScreenshots extends Command
 {
-    // Replaced ID with Email
     protected $signature = 'sharemeister:clear-user-storage {email : The email of the user} {--force : Skip confirmation}';
 
     protected $description = 'Deletes all screenshots of a specific user from database and filesystem';
