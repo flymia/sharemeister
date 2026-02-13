@@ -19,7 +19,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install pdo_mysql mbstring gd zip bcmath
 
 # Configure Nginx
-COPY Docker/Production/nginx.conf /etc/nginx/http.d/default.conf
+COPY ./Docker/Production/nginx.conf /etc/nginx/http.d/default.conf
 
 # Set Workdir
 WORKDIR /var/www/html
