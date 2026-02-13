@@ -45,28 +45,57 @@ class ManageUser extends Command
 
     protected function createUser($email)
     {
+        // 1. Initial Email Input
         if (!$email) {
             $email = $this->ask('Enter the user email');
         }
 
-        if (User::where('email', $email)->exists()) {
-            $this->error("User with email {$email} already exists!");
+        // 2. Comprehensive Validation
+        // We use Laravel's validator for the email first
+        $validator = Validator::make(['email' => $email], [
+            'email' => 'required|email|unique:users,email',
+        ]);
+
+        if ($validator->fails()) {
+            $this->error($validator->errors()->first());
             return;
         }
 
+        // 3. Password with minimum security check
         $password = $this->secret('Enter password for the new user');
-        $isAdmin = $this->confirm('Assign Administrator privileges?', false);
+        if (empty($password) || strlen($password) < 8) {
+            $this->error("Password must be at least 8 characters long!");
+            return;
+        }
+
+        // 4. Storage Limit Validation
         $limit = $this->ask('Storage limit in MB (-1 for unlimited)', 500);
+        
+        // English comment: Ensure limit is either -1 or a positive integer
+        if (!is_numeric($limit) || ($limit < 1 && $limit != -1)) {
+            $this->error("Invalid storage limit! Please enter a number (e.g., 500) or -1.");
+            return;
+        }
 
-        User::create([
-            'name' => explode('@', $email)[0],
-            'email' => $email,
-            'password' => Hash::make($password),
-            'is_admin' => $isAdmin,
-            'storage_limit_mb' => $limit,
-        ]);
+        $isAdmin = $this->confirm('Assign Administrator privileges?', false);
 
-        $this->info("User {$email} created successfully.");
+        // 5. Final Creation
+        try {
+            // English comment: Safe explode since email validation passed
+            $name = explode('@', $email)[0];
+
+            User::create([
+                'name' => ucfirst($name), // Make it look nicer (e.g. 'Peter' instead of 'peter')
+                'email' => $email,
+                'password' => Hash::make($password),
+                'is_admin' => $isAdmin,
+                'storage_limit_mb' => (int)$limit,
+            ]);
+
+            $this->info("Success: User {$email} created with " . ($limit == -1 ? 'unlimited' : $limit . 'MB') . " storage.");
+        } catch (\Exception $e) {
+            $this->error("Database error: " . $e->getMessage());
+        }
     }
 
     protected function deleteUser($email)
