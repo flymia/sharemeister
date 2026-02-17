@@ -4,6 +4,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Ramsey\Uuid\Type\Integer;
 
 class Screenshot extends Model
@@ -35,6 +36,16 @@ class Screenshot extends Model
         }
 
         return null; // Null if the file does not exist for some reason.
+    }
+
+    public function uploader(): BelongsTo
+    {
+            return $this->belongsTo(User::class, 'uploader_id');
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class);
     }
 
 }

@@ -30,29 +30,46 @@ class ScreenshotController extends Controller
     }
 
 
-    /**
-     * Display a list of all screenshots belonging to the user.
-     */
     public function index(Request $request)
     {
         $sort = $request->query('sort', 'created_at');
+        $tagFilter = $request->query('tag'); // Der Slug des Tags
 
-        $query = Screenshot::where('uploader_id', Auth::id());
-        
-        switch ($sort) {
-            case 'created_at_desc':
-                $query->orderBy('created_at', 'asc');
-                break;
-            default:
-                $query->orderBy('created_at', 'desc');
-                break;
+        // Eager loading der Tags für die Badges in der Liste
+        $query = Screenshot::with('tags')->where('uploader_id', Auth::id());
+
+        // Wenn ein Tag-Filter aktiv ist, nutzen wir eine Join-Abfrage
+        if ($tagFilter) {
+            $query->whereHas('tags', function($q) use ($tagFilter) {
+                $q->where('slug', $tagFilter);
+            });
         }
 
-        $screenshots = $query->paginate(12)->appends(['sort' => $sort]);
+        // Sortierung
+        if ($sort === 'created_at_desc') {
+            $query->orderBy('created_at', 'asc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
 
-        return view('screenshot.list', ['screenshots' => $screenshots, 'sort' => $sort]);
+        // Pagination (Wichtig: appends sorgt dafür, dass die URL-Parameter beim Umblättern erhalten bleiben)
+        $screenshots = $query->paginate(12)->appends([
+            'sort' => $sort,
+            'tag' => $tagFilter
+        ]);
+
+        // Für die Filter-Bar brauchen wir alle Tags des Users
+        $allUserTags = \App\Models\Tag::whereHas('screenshots', function($q) {
+            $q->where('uploader_id', auth()->id());
+        })->orderBy('name')->get();
+
+        return view('screenshot.list', [
+            'screenshots' => $screenshots, 
+            'sort' => $sort,
+            'allTags' => $allUserTags,
+            'currentTag' => $tagFilter
+        ]);
     }
-
     /**
      * Show the upload form (Web).
      */
@@ -76,13 +93,13 @@ class ScreenshotController extends Controller
             'image.*' => [
                 'image',
                 'mimes:jpeg,png,jpg,gif',
-                "max:{$maxSize}" // English comment: The variable must be defined in THIS method
+                "max:{$maxSize}" // The variable must be defined in THIS method
             ],
         ]);
 
         $files = $request->file('image');
         foreach ($files as $file) {
-            // English comment: The service handles the internal logic
+            // The service handles the internal logic
             $this->handleUpload($file);
         }
 
@@ -96,10 +113,13 @@ class ScreenshotController extends Controller
      */
     public function show(Request $request)
     {
-        $screenshot = Screenshot::where('id', $request->id)
+        // Eager load tags so we can display them in the frontend immediately
+        $screenshot = Screenshot::with('tags')->where('id', $request->id)
             ->where('uploader_id', Auth::id())
             ->firstOrFail();
 
+        // We pass the screenshot. In the Blade view, you can access 
+        // the tags via $screenshot->tags or convert them to a string for the input field.
         return view('screenshot.detail', ['screenshot' => $screenshot]);
     }
 
@@ -203,5 +223,38 @@ class ScreenshotController extends Controller
 
         return response($screenshot->publicURL, 201)
             ->header('Content-Type', 'text/plain');
+    }
+
+    /**
+     * Update metadata (currently only tags).
+     */
+    public function updateMetadata(Request $request, $id) // Hier lag vermutlich der Namens-Fehler
+    {
+        $screenshot = Screenshot::where('id', $id)
+            ->where('uploader_id', auth()->id())
+            ->firstOrFail();
+
+        $request->validate([
+            'tags' => 'nullable|string', 
+        ]);
+
+        $tagIds = [];
+        if ($request->tags) {
+            $tagNames = array_map('trim', explode(',', $request->tags));
+            
+            foreach ($tagNames as $name) {
+                if (empty($name)) continue;
+
+                $tag = \App\Models\Tag::firstOrCreate(
+                    ['slug' => \Illuminate\Support\Str::slug($name)],
+                    ['name' => $name]
+                );
+                $tagIds[] = $tag->id;
+            }
+        }
+
+        $screenshot->tags()->sync($tagIds);
+
+        return redirect()->back()->with('success', 'Metadata updated successfully.');
     }
 }

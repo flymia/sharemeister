@@ -17,6 +17,25 @@
     </div>
 </div>
 
+<div class="mb-4">
+    <label class="small fw-bold text-uppercase text-muted d-block mb-2">Filter by Tag</label>
+    <div class="d-flex flex-wrap gap-2">
+        {{-- English comment: Link to reset the tag filter but keep the current sorting --}}
+        <a href="{{ route('screenshot.list', ['sort' => $sort]) }}" 
+           class="btn btn-sm {{ !request('tag') ? 'btn-dark shadow-sm' : 'btn-outline-secondary' }}">
+            All
+        </a>
+        
+        @foreach($allTags as $tag)
+            {{-- English comment: Each tag link preserves the sorting order --}}
+            <a href="{{ route('screenshot.list', ['tag' => $tag->slug, 'sort' => $sort]) }}" 
+               class="btn btn-sm {{ request('tag') == $tag->slug ? 'btn-dark shadow-sm' : 'btn-outline-secondary' }}">
+                #{{ $tag->name }}
+            </a>
+        @endforeach
+    </div>
+</div>
+
 @if(session('message'))
     <div class="alert alert-success border-0 shadow-sm d-flex align-items-center mb-4">
         <i class="bi bi-check-circle-fill me-2"></i>
@@ -34,13 +53,25 @@
                 
                 <div class="card-body p-3">
                     <div class="mb-2">
-                        <p class="text-truncate small fw-bold mb-0">{{ basename($scr->image) }}</p>
+                        <p class="text-truncate small fw-bold mb-0" title="{{ basename($scr->image) }}">
+                            {{ basename($scr->image) }}
+                        </p>
                         <span class="text-body-secondary extra-small">
                             <i class="bi bi-calendar3 me-1"></i> {{ $scr->created_at->diffForHumans() }}
                         </span>
                     </div>
 
-                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                    {{-- Tags Badges --}}
+                    <div class="mt-2 mb-3">
+                        @foreach($scr->tags as $tag)
+                            <a href="{{ route('screenshot.list', ['tag' => $tag->slug, 'sort' => $sort]) }}" 
+                               class="badge bg-light text-dark border text-decoration-none extra-small me-1">
+                               #{{ $tag->name }}
+                            </a>
+                        @endforeach
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
                         <div class="btn-group btn-group-sm">
                             <a href="{{ route('screenshot.details', $scr->id) }}" class="btn btn-light border" title="Details">
                                 <i class="bi bi-info-circle"></i>
@@ -64,26 +95,27 @@
     @empty
         <div class="col-12 py-5 text-center">
             <div class="py-5">
-                <i class="bi bi-cloud-upload display-1 text-muted opacity-25"></i>
-                <p class="mt-3 text-muted">No screenshots found. Time to capture something!</p>
-                <a href="{{ route('screenshot.upload') }}" class="btn btn-primary px-4 mt-2">Upload Now</a>
+                <i class="bi bi-search display-1 text-muted opacity-25"></i>
+                <p class="mt-3 text-muted">No screenshots found for this criteria.</p>
+                <a href="{{ route('screenshot.list') }}" class="btn btn-outline-primary btn-sm px-4 mt-2">Clear all filters</a>
             </div>
         </div>
     @endforelse
 </div>
 
 <div class="d-flex justify-content-center mt-5">
+    {{-- English comment: The appends() call in the controller ensures pagination links include tags/sort --}}
     {{ $screenshots->links('pagination::bootstrap-5') }}
 </div>
 
 <style>
+    .screenshot-card { transition: all 0.2s ease-in-out; }
     .screenshot-card:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important; }
     .img-hover { transition: transform 0.5s ease; }
     .screenshot-card:hover .img-hover { transform: scale(1.1); }
     .extra-small { font-size: 0.75rem; }
     .object-fit-cover { object-fit: cover; }
     
-    /* Toast Styling */
     .copy-toast {
         position: fixed;
         bottom: 2rem;
@@ -98,9 +130,18 @@
 </style>
 
 <script>
+    /**
+     * English comment: Redirect with current tag and new sort value
+     */
     function sortScreenshots() {
         const sortValue = document.getElementById('sort').value;
-        window.location.href = `{{ route('screenshot.list') }}?sort=${sortValue}`;
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        urlParams.set('sort', sortValue);
+        // Important: Keep the page at 1 when sorting changes to avoid empty results
+        urlParams.delete('page'); 
+
+        window.location.href = `{{ route('screenshot.list') }}?${urlParams.toString()}`;
     }
 
     function copyToClipboard(text) {
