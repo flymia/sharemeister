@@ -19,11 +19,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # QEMU wird benötigt, um ARM auf x86-Build-Servern zu emulieren
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      # Buildx ist das Werkzeug für Multi-Arch Builds
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -46,13 +44,12 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: .
-          push: true
-          platforms: linux/amd64,linux/arm64
-          tags: |
-            ${{ steps.meta.outputs.tags }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-arm
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+           context: .
+           file: ./Docker/Production/Dockerfile
+           push: true
+           platforms: linux/amd64,linux/arm64
+           tags: |
+             ${{ steps.meta.outputs.tags }}
+             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-arm
+           labels: ${{ steps.meta.outputs.labels }}
 
