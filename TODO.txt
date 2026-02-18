@@ -1,0 +1,3 @@
+- Remove EXIF data for imported screenshots / screenshots that are not converted to webp
+- Ability to import screenshots using a CSV list with paths and user emails
+- Automatic removal of screenshots after a certain amount of time
