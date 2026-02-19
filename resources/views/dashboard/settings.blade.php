@@ -86,6 +86,9 @@
                         <a href="{{ route('account.settings.sxcu') }}" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-download me-1"></i> Download ShareX Config (.sxcu)
                         </a>
+                        <a href="{{ route('account.settings.bash') }}" class="btn btn-sm btn-outline-secondary">
+                           <i class="bi bi-terminal me-1"></i> Bash Script (.sh)
+                        </a>
                     </div>
                 @else
                     <div class="text-center py-3">

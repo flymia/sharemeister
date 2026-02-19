@@ -11,7 +11,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->post('/upload', [ScreenshotController::class, 'apiUpload'])->name('api.screenshot.upload');
-Route::middleware('auth:sanctum')->post('/upload/raw', [ScreenshotController::class, 'apiUploadRaw']);
+Route::middleware('auth:sanctum')->post('/upload/raw', [ScreenshotController::class, 'apiUploadRaw'])->name('api.screenshot.upload.raw');
 
 
 Route::get('/health', [SystemMetricsController::class, 'index']);

@@ -6,7 +6,7 @@
     <div class="col-md-8 col-lg-6">
         <div class="text-center mb-5">
             <h1 class="display-6 fw-bold">Upload Screenshot</h1>
-            <p class="text-muted">Manual upload for your captures. For automated uploads, use our <a href="#" class="text-primary text-decoration-none">API Guide</a>.</p>
+            <p class="text-muted">Manual upload for your captures. For automated uploads, use our <a href="https://github.com/flymia/sharemeister/wiki/Using-the-API" class="text-primary text-decoration-none">API Guide</a>.</p>
         </div>
 
         @if(session('success'))
