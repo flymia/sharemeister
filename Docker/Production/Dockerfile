@@ -1,5 +1,5 @@
 # Stage 1: PHP & Nginx Runtime
-FROM php:8.2-fpm-alpine
+FROM php:8.3-fpm-alpine
 
 # Install System Dependencies
 RUN apk add --no-cache \
