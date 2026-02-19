@@ -1,0 +1,38 @@
+# Docker Compose file for the prod environment.
+
+services:
+    app:
+        image: ghcr.io/flymia/sharemeister:latest
+        container_name: sharemeister-prod-app
+        restart: 'always'
+        depends_on:
+          - db
+        links:
+          - db
+        networks:
+          - "sharemeister-prod"
+        ports:
+          - "127.0.0.1:8006:80"
+        volumes:
+          - "./sm-data/storage:/var/www/html/storage:z"
+          - "./.env:/var/www/html/.env:z"
+    db:
+        image: docker.io/mariadb:lts
+        container_name: sharemeister-prod-db
+        networks:
+            -  "sharemeister-prod"
+        ports:
+            - "3306"
+        volumes:
+            - "./sm-db:/var/lib/mysql:z"
+        
+        environment:
+            MYSQL_ROOT_PASSWORD: <INSERT ROOT PW>
+            MYSQL_USER: <INSERT DB USER>
+            MYSQL_PASSWORD: <INSERT USER PASSWORD>
+            MYSQL_DATABASE: <INSERT DB NAME>
+
+networks:
+    sharemeister-prod:
+        name: sharemeister-prod
+        external: true
