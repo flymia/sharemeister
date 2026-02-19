@@ -34,6 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/account/settings/update', [UserController::class, 'update'])->name('account.settings.update');    
     Route::post('/account/settings/generateapikey', [UserController::class, "generateapikey"])->name('account.settings.generateapikey');
     Route::post('/account/settings/deleteapikey', [UserController::class, "deleteapikey"])->name('account.settings.deleteapikey');
+    Route::post('/account/settings/password', [UserController::class, 'updatePassword'])->name('account.settings.password');
     Route::get('/settings/download-sxcu', [UserController::class, 'downloadSxcu'])->name('account.settings.sxcu');
 });
 

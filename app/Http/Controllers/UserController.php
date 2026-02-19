@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -107,6 +109,30 @@ class UserController extends Controller
         return response()->streamDownload(function () use ($config) {
             echo json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         }, $fileName, ['Content-Type' => 'application/json']);
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            // Ensure the user knows their current password
+            'current_password' => ['required', 'current_password'],
+            // New password requirements (min 8 chars, letters, numbers)
+            'new_password' => [
+                'required', 
+                'confirmed', 
+                Password::min(8)->letters()->numbers()
+            ],
+        ], [
+            'current_password.current_password' => 'Das angegebene aktuelle Passwort ist nicht korrekt.',
+            'new_password.confirmed' => 'Die Bestätigung für das neue Passwort stimmt nicht überein.',
+        ]);
+
+        // Update the password with a secure hash
+        $request->user()->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return back()->with('password_success', 'Dein Passwort wurde erfolgreich geändert.');
     }
 
 }
