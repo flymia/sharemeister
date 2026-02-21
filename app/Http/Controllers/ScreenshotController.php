@@ -111,15 +111,16 @@ class ScreenshotController extends Controller
     /**
      * Display screenshot detail page.
      */
-    public function show(Request $request)
+    public function show(Screenshot $screenshot)
     {
-        // Eager load tags so we can display them in the frontend immediately
-        $screenshot = Screenshot::with('tags')->where('id', $request->id)
-            ->where('uploader_id', Auth::id())
-            ->firstOrFail();
+        // Security Check
+        if ($screenshot->uploader_id !== auth()->id()) {
+            abort(403);
+        }
 
-        // We pass the screenshot. In the Blade view, you can access 
-        // the tags via $screenshot->tags or convert them to a string for the input field.
+        // Falls du Tags nachladen willst (Eager Loading für die Performance)
+        $screenshot->load('tags');
+
         return view('screenshot.detail', ['screenshot' => $screenshot]);
     }
 
@@ -139,21 +140,19 @@ class ScreenshotController extends Controller
     /**
      * Delete a screenshot (Database & Filesystem).
      */
-    public function destroy(Request $request)
+    public function destroy(Screenshot $screenshot) // Direktes Binding
     {
-        $toDelete = Screenshot::findOrFail($request->id);
-
         // Security check: Only the owner can delete
-        if ($toDelete->uploader_id != Auth::id()) {
+        if ($screenshot->uploader_id !== auth()->id()) {
             abort(403);
         }
 
-        // Delete from storage disk using Laravel Storage facade for abstraction
-        if (Storage::disk('public')->exists($toDelete->image)) {
-            Storage::disk('public')->delete($toDelete->image);
+        // Delete from storage
+        if (Storage::disk('public')->exists($screenshot->image)) {
+            Storage::disk('public')->delete($screenshot->image);
         }
 
-        $toDelete->delete();
+        $screenshot->delete();
 
         return redirect()->route('screenshot.list')->with('message', 'Screenshot deleted successfully.');
     }
@@ -225,36 +224,39 @@ class ScreenshotController extends Controller
             ->header('Content-Type', 'text/plain');
     }
 
-    /**
-     * Update metadata (currently only tags).
-     */
-    public function updateMetadata(Request $request, $id) // Hier lag vermutlich der Namens-Fehler
+    public function updateMetadata(Request $request, Screenshot $screenshot)
     {
-        $screenshot = Screenshot::where('id', $id)
-            ->where('uploader_id', auth()->id())
-            ->firstOrFail();
-
-        $request->validate([
-            'tags' => 'nullable|string', 
-        ]);
-
-        $tagIds = [];
-        if ($request->tags) {
-            $tagNames = array_map('trim', explode(',', $request->tags));
-            
-            foreach ($tagNames as $name) {
-                if (empty($name)) continue;
-
-                $tag = \App\Models\Tag::firstOrCreate(
-                    ['slug' => \Illuminate\Support\Str::slug($name)],
-                    ['name' => $name]
-                );
-                $tagIds[] = $tag->id;
-            }
+        // Security Check: Only the uploader can edit
+        if (auth()->id() !== $screenshot->uploader_id) {
+            abort(403);
         }
 
+        // Validation
+        $request->validate([
+            'tags' => 'nullable|string',
+            'is_permanent' => 'nullable|string' // Checkboxes send string "on" or null
+        ]);
+
+        // 1. Handle Protection Status
+        // If the checkbox is present, it's true, otherwise false
+        $screenshot->is_permanent = $request->has('is_permanent');
+        
+        // 2. Handle Tags (Dein bisheriger Code, nur zur Vollständigkeit)
+        $tagNames = collect(explode(',', $request->tags))
+            ->map(fn($t) => trim($t))
+            ->filter()
+            ->unique();
+        
+        $tagIds = [];
+        foreach ($tagNames as $name) {
+            $tag = Tag::firstOrCreate(['name' => $name]);
+            $tagIds[] = $tag->id;
+        }
         $screenshot->tags()->sync($tagIds);
 
-        return redirect()->back()->with('success', 'Metadata updated successfully.');
+        // This will trigger 'updated_at' automatically!
+        $screenshot->save();
+
+        return back()->with('success', 'Metadata and protection status updated.');
     }
 }

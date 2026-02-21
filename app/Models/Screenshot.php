@@ -11,17 +11,17 @@ class Screenshot extends Model
 {
     use HasUuids, HasFactory;
 
-    protected $fillable = ['uploader_id', 'image', 'file_size_kb', 'created_at'];
+    protected $fillable = ['uploader_id', 'image', 'file_size_kb', 'created_at', 'is_permanent'];
     protected $appends = ['publicURL'];
 
-    /**
-     * Accessor für die Public URL.
-     * Ermöglicht den Aufruf via $screenshot->publicURL
-     */
+    protected $casts = [
+        'is_permanent' => 'boolean',
+        'created_at' => 'datetime',
+    ];
+
     protected function publicURL(): Attribute
     {
         return Attribute::make(
-            // Wir generieren den Link direkt zu deiner 'rawShow' Route
             get: fn () => url('screenshots/' . basename($this->image)),
         );
     }
@@ -46,6 +46,30 @@ class Screenshot extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    /**
+     * Protect the screenshot from deletion.
+     */
+    public function protect(): bool
+    {
+        return $this->update(['is_permanent' => true]);
+    }
+
+    /**
+     * Unprotect the screenshot, allowing deletion.
+     */
+    public function unprotect(): bool
+    {
+        return $this->update(['is_permanent' => false]);
+    }
+
+    /**
+     * Toggle the protection status.
+     */
+    public function toggleProtection(): bool
+    {
+        return $this->update(['is_permanent' => !$this->is_permanent]);
     }
 
 }

@@ -51,6 +51,20 @@
                             <div class="form-text extra-small text-muted">Press enter or click save to update.</div>
                         </div>
 
+                        <div class="mb-4 p-2 rounded border-start border-4 {{ $screenshot->is_permanent ? 'border-primary' : 'border-secondary' }}">
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input cursor-pointer" type="checkbox" name="is_permanent" id="is_permanent" 
+                                    {{ $screenshot->is_permanent ? 'checked' : '' }} onchange="this.form.submit()">
+                                <label class="form-check-label fw-bold small cursor-pointer" for="is_permanent">
+                                    <i class="bi {{ $screenshot->is_permanent ? 'bi-shield-lock-fill text-primary' : 'bi-shield-slash text-muted' }} me-1"></i>
+                                    Persistent Protection
+                                </label>
+                            </div>
+                            <div class="extra-small text-muted mt-1 ps-1">
+                                If enabled, this file will be ignored by automated cleanup tasks.
+                            </div>
+                        </div>
+
                         <button type="submit" class="btn btn-sm btn-primary w-100 mb-4 shadow-sm">
                             <i class="bi bi-save me-2"></i>Save Metadata
                         </button>

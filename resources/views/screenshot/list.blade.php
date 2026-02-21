@@ -50,7 +50,15 @@
                 <div class="ratio ratio-16x9 bg-light rounded-top overflow-hidden">
                     <img src="{{ $scr->publicURL }}" alt="Screenshot" class="object-fit-cover img-hover" />
                 </div>
-                
+
+                @if($scr->is_permanent)
+                        <div class="position-absolute top-0 end-0 m-2">
+                            <span class="badge bg-primary shadow-sm" title="Protected">
+                                <i class="bi bi-shield-lock-fill"></i>
+                            </span>
+                        </div>
+                @endif
+
                 <div class="card-body p-3">
                     <div class="mb-2">
                         <p class="text-truncate small fw-bold mb-0" title="{{ basename($scr->image) }}">
@@ -73,7 +81,7 @@
 
                     <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
                         <div class="btn-group btn-group-sm">
-                            <a href="{{ route('screenshot.details', $scr->id) }}" class="btn btn-light border" title="Details">
+                            <a href="{{ route('screenshot.details', $scr) }}" class="btn btn-light border" title="Details">
                                 <i class="bi bi-info-circle"></i>
                             </a>
                             <button onclick="copyToClipboard('{{ $scr->publicURL }}')" class="btn btn-light border" title="Copy Link">
@@ -81,7 +89,7 @@
                             </button>
                         </div>
 
-                        <form action="{{ route('screenshot.delete', $scr->id) }}" method="POST" onsubmit="return confirm('Delete this screenshot permanently?')">
+                        <form action="{{ route('screenshot.delete', $scr) }}" method="POST" onsubmit="return confirm('Delete this screenshot permanently?')">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-sm btn-outline-danger border-0">

@@ -26,9 +26,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/screenshots/list', [ScreenshotController::class, 'index'])->name('screenshot.list');
 
-    Route::get('/screenshots/details/{id}', [ScreenshotController::class, "show"])->name('screenshot.details');
-    Route::delete('/screenshots/delete/{id}', [ScreenshotController::class, "destroy"])->name('screenshot.delete');
-    Route::post('/screenshots/details/{id}', [ScreenshotController::class, 'updateMetadata'])->name('screenshot.update-metadata');
+    Route::get('/screenshots/details/{screenshot}', [ScreenshotController::class, "show"])->name('screenshot.details');
+    Route::delete('/screenshots/delete/{screenshot}', [ScreenshotController::class, "destroy"])->name('screenshot.delete');
+    Route::post('/screenshots/details/{screenshot}', [ScreenshotController::class, 'updateMetadata'])->name('screenshot.update-metadata');
 
     Route::get('/account/settings', [UserController::class, "index"])->name('account.settings');
     Route::post('/account/settings/update', [UserController::class, 'update'])->name('account.settings.update');    
