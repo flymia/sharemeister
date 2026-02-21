@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Models\Tag;
 use App\Services\ScreenshotService;
 
 class ScreenshotController extends Controller
@@ -140,11 +141,16 @@ class ScreenshotController extends Controller
     /**
      * Delete a screenshot (Database & Filesystem).
      */
-    public function destroy(Screenshot $screenshot) // Direktes Binding
+    public function destroy(Screenshot $screenshot)
     {
-        // Security check: Only the owner can delete
+        // 1. Security check: Only the owner can delete
         if ($screenshot->uploader_id !== auth()->id()) {
             abort(403);
+        }
+
+        // 2. Protection check: Prevent accidental deletion
+        if ($screenshot->is_permanent) {
+            return back()->with('error', 'This screenshot is protected. Disable protection in details before deleting.');
         }
 
         // Delete from storage
@@ -204,7 +210,7 @@ class ScreenshotController extends Controller
 
         return response()->json([
             'success' => true,
-            'public_link' => $screenshot->publicURL,
+            'public_link' => $screenshot->public_url,
             'message' => 'Upload successful'
         ]);
     }
@@ -220,7 +226,7 @@ class ScreenshotController extends Controller
 
         $screenshot = $this->handleUpload($request->file('image'));
 
-        return response($screenshot->publicURL, 201)
+        return response($screenshot->public_url, 201)
             ->header('Content-Type', 'text/plain');
     }
 

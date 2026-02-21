@@ -43,6 +43,13 @@
     </div>
 @endif
 
+@if(session('error'))
+    <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ session('error') }}
+    </div>
+@endif
+
 <div class="row g-4" id="screenshot-container">
     @forelse($screenshots as $scr)
         <div class="col-sm-6 col-md-4 col-xl-3">
@@ -92,9 +99,18 @@
                         <form action="{{ route('screenshot.delete', $scr) }}" method="POST" onsubmit="return confirm('Delete this screenshot permanently?')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-outline-danger border-0">
-                                <i class="bi bi-trash3"></i>
-                            </button>
+                            
+                            @if($scr->is_permanent)
+                                {{-- Deaktivierter Button mit Tooltip oder Hinweis --}}
+                                <button type="button" class="btn btn-sm btn-outline-secondary border-0 opacity-50" 
+                                        title="Protected: Disable protection in details to delete" disabled>
+                                    <i class="bi bi-lock-fill"></i>
+                                </button>
+                            @else
+                                <button type="submit" class="btn btn-sm btn-outline-danger border-0">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            @endif
                         </form>
                     </div>
                 </div>

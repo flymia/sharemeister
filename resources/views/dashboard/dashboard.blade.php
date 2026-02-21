@@ -60,7 +60,7 @@
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
                 <div class="card h-100 border-0 shadow-sm hover-shadow transition">
                     <div class="position-relative overflow-hidden rounded-top" style="height: 140px;">
-                        <img src="{{ $screenshot->publicURL }}" 
+                        <img src="{{ $screenshot->public_url }}" 
                              class="card-img-top w-100 h-100 object-fit-cover" 
                              alt="Screenshot">
                     </div>
@@ -79,10 +79,10 @@
 
                         <div class="d-grid gap-2">
                             <div class="btn-group btn-group-sm">
-                                <a href="{{ $screenshot->publicURL }}" target="_blank" class="btn btn-outline-primary">
+                                <a href="{{ $screenshot->public_url }}" target="_blank" class="btn btn-outline-primary">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <button onclick="copyToClipboard('{{ $screenshot->publicURL }}')" class="btn btn-outline-secondary">
+                                <button onclick="copyToClipboard('{{ $screenshot->public_url }}')" class="btn btn-outline-secondary">
                                     <i class="bi bi-clipboard"></i>
                                 </button>
                             </div>
