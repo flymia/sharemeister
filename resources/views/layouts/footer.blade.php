@@ -5,8 +5,8 @@
             <span class="version-tag" data-build="Build: {{ config('version.build') }}">
                 v{{ config('version.tag') }}
             </span> 
-            &bull; Built with Laravel &bull; 
-            <a href="https://github.com/flymia/Sharemeister/" class="text-white-50">GitHub</a>
+            &bull;
+            <a href="https://github.com/flymia/Sharemeister/">GitHub</a>
         </small>
     </div>
 </footer>
