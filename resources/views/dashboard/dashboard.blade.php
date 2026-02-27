@@ -53,42 +53,62 @@
             </div>
         </div>
 
-    <h5 class="mb-3 fw-bold">Recent Activity</h5>
+    <h5 class="mb-3 fw-bold">Recently uploaded</h5>
     
     <div class="row g-4">
         @forelse($screenshots as $screenshot)
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="card h-100 border-0 shadow-sm hover-shadow transition">
-                    <div class="position-relative overflow-hidden rounded-top" style="height: 140px;">
-                        <img src="{{ $screenshot->public_url }}" 
-                             class="card-img-top w-100 h-100 object-fit-cover" 
-                             alt="Screenshot">
-                    </div>
-                    
-                    <div class="card-body p-3">
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <h6 class="card-title text-truncate mb-0 small fw-bold" title="{{ basename($screenshot->image) }}">
-                                {{ basename($screenshot->image) }}
-                            </h6>
+                <a href="{{ route('screenshot.details', $screenshot) }}" class="text-decoration-none text-reset">
+                    <div class="card h-100 border-0 shadow-sm hover-shadow transition">
+                        <div class="position-relative overflow-hidden rounded-top" style="height: 140px;">
+                            <img src="{{ $screenshot->public_url }}" 
+                                class="card-img-top w-100 h-100 object-fit-cover" 
+                                alt="Screenshot">
+
+                            @if($screenshot->is_permanent)
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    <span class="badge bg-primary shadow-sm">
+                                        <i class="bi bi-shield-lock-fill"></i>
+                                    </span>
+                                </div>
+                            @endif
                         </div>
                         
-                        <div class="text-muted extra-small mb-3">
-                            <i class="bi bi-clock me-1"></i> {{ $screenshot->created_at->diffForHumans() }} <br>
-                            <i class="bi bi-file-earmark-binary me-1"></i> {{ $screenshot->file_size_kb }} KB
-                        </div>
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h6 class="card-title text-truncate mb-0 small fw-bold" title="{{ basename($screenshot->image) }}">
+                                    {{ basename($screenshot->image) }}
+                                </h6>
+                            </div>
+                            
+                            <div class="text-muted extra-small mb-3">
+                                <i class="bi bi-clock me-1"></i> {{ $screenshot->created_at->diffForHumans() }} <br>
+                                <i class="bi bi-file-earmark-binary me-1"></i> {{ $screenshot->file_size_kb }} KB
+                            </div>
 
-                        <div class="d-grid gap-2">
-                            <div class="btn-group btn-group-sm">
-                                <a href="{{ $screenshot->public_url }}" target="_blank" class="btn btn-outline-primary">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <button onclick="copyToClipboard('{{ $screenshot->public_url }}')" class="btn btn-outline-secondary">
-                                    <i class="bi bi-clipboard"></i>
-                                </button>
+                            <div class="d-grid gap-2">
+                                <div class="btn-group btn-group-sm">
+                                    {{-- 'stopPropagation' verhindert, dass die Detailseite aufgeht. 
+                                        Das 'target="_blank"' funktioniert dann wieder normal. --}}
+                                    <a href="{{ $screenshot->public_url }}" 
+                                    target="_blank" 
+                                    class="btn btn-outline-primary" 
+                                    onclick="event.stopPropagation();"
+                                    title="Open RAW">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    
+                                    <button type="button" 
+                                            onclick="event.stopPropagation(); copyToClipboard('{{ $screenshot->public_url }}')" 
+                                            class="btn btn-outline-secondary" 
+                                            title="Copy Link">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
         @empty
             <div class="col-12 text-center py-5">
@@ -107,6 +127,7 @@
     .hover-shadow:hover {
         transform: translateY(-3px);
         box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+        cursor: pointer;
     }
     .transition { transition: all 0.2s ease-in-out; }
     .object-fit-cover { object-fit: cover; }
