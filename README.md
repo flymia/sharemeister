@@ -14,6 +14,7 @@
     * `sharemeister:user` - Manage users.
 * **Telemetry API:** `/api/health` endpoint for monitoring instance status and disk health.
 * **Fortify Integration:** Robust authentication flow including password resets and email verification.
+* **Documentation:** See our [wiki](https://github.com/flymia/sharemeister/wiki) for documentation on how to setup Sharemeister or how to use the API.
 
 ## Roadmap
 
