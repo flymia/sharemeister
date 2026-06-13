@@ -9,14 +9,14 @@ use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
-    /**
+/**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
         $loggedUser = auth()->user();
 
-        // check if the user already has a token
+        // Check if the user already has a token
         $existingToken = $loggedUser->tokens()->where('name', 'uploadkey')->first();
 
         if ($existingToken) {
@@ -28,7 +28,19 @@ class UserController extends Controller
             session()->forget(['userHasAPIKey', 'apiKeyCreatedAt']); // clear session if no key
         }
 
-        return view('dashboard.settings', ['loggedUser' => $loggedUser]);
+        // 1. Count the screenshots directly in the database (efficient SQL COUNT)
+        $totalUploads = $loggedUser->screenshots()->count();
+
+        // 2. Sum up the file size directly via SQL SUM to save container RAM
+        $totalStorageKb = $loggedUser->screenshots()->sum('file_size_kb');
+        $totalStorageMb = round($totalStorageKb / 1024, 1);
+
+        // Pass the pre-calculated numbers directly to the view
+        return view('dashboard.settings', [
+            'loggedUser' => $loggedUser,
+            'totalUploads' => $totalUploads,
+            'totalStorageMb' => $totalStorageMb,
+        ]);
     }
 
     public function generateApiKey(Request $request)

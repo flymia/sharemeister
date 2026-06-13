@@ -145,20 +145,22 @@
         <div class="card shadow-sm border-0 bg-dark text-white p-2">
             <div class="card-body">
                 <h6 class="text-uppercase small fw-bold text-muted mb-4">Account Stats</h6>
-                <div class="row text-center">
-                    <div class="col-4 border-end border-secondary">
-                        <div class="h4 mb-0 fw-bold">{{ $loggedUser->created_at->format('M Y') }}</div>
-                        <div class="extra-small text-muted">Member Since</div>
+                    <div class="row text-center">
+                        <div class="col-4 border-end border-secondary">
+                            <div class="h4 mb-0 fw-bold">{{ $loggedUser->created_at->format('M Y') }}</div>
+                            <div class="extra-small text-muted">Member Since</div>
+                        </div>
+                        <div class="col-4 border-end border-secondary">
+                            {{-- Using direct variable from controller --}}
+                            <div class="h4 mb-0 fw-bold">{{ $totalUploads }}</div>
+                            <div class="extra-small text-muted">Total Uploads</div>
+                        </div>
+                        <div class="col-4">
+                            {{-- Using pre-calculated MB from controller --}}
+                            <div class="h4 mb-0 fw-bold">{{ $totalStorageMb }} MB</div>
+                            <div class="extra-small text-muted">Used Storage</div>
+                        </div>
                     </div>
-                    <div class="col-4 border-end border-secondary">
-                        <div class="h4 mb-0 fw-bold">{{ $loggedUser->screenshots()->count() }}</div>
-                        <div class="extra-small text-muted">Total Uploads</div>
-                    </div>
-                    <div class="col-4">
-                        <div class="h4 mb-0 fw-bold">{{ round($loggedUser->screenshots->sum('file_size_kb') / 1024, 1) }} MB</div>
-                        <div class="extra-small text-muted">Used Storage</div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
