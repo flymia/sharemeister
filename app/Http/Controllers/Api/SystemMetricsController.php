@@ -30,7 +30,8 @@ class SystemMetricsController extends Controller
         return response()->json([
             'instance_name' => config('app.name'),
             'status' => ($dbStatus === 'healthy' && $isWritable) ? 'ok' : 'degraded',
-            'version' => '1.0.0',
+            'version' => config('version.tag'),
+            'build' => config('version.build'),
             'timestamp' => now()->toIso8601String(),
             
             'metrics' => [

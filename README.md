@@ -1,26 +1,31 @@
-# 🚀 Sharemeister
+# Sharemeister
 
-**Sharemeister** is a private, high-performance screenshot hosting instance. It is designed for users who value privacy and want to keep their data on their own infrastructure rather than third-party clouds.
+**Sharemeister** is a private, high-performance screenshot server. It allows you to manage screenshots in an easy way and has support for multiple users. Screenshots can be uploaded and shared via the web and Bash scripts. It can also be used with ShareX. It is designed for users who value privacy and want to keep their data on their own infrastructure rather than third-party clouds.
 
-## 🛠️ Features
+## Features
 
+* **Screenshot upload:** Upload your screenshots using CLI or the web
 * **Storage Quotas:** Built-in quota system with visual progress bars (150MB default for users, Infinite for Admins).
 * **UI:** Clean, modern dashboard using Bootstrap 5 with high-fidelity UI components.
-* **SysAdmin CLI Suite:**
+* **CLI Suite:**
     * `sharemeister:install` - Guided installation and admin enrollment.
     * `sharemeister:import` - Bulk import local directories into a user's account.
-    * `sharemeister:clear-user-storage` - Maintenance command to wipe user data via email.
+    * `sharemeister:clear-user-storage` - Maintenance command to wipe user data.
     * `sharemeister:user` - Manage users.
 * **Telemetry API:** `/api/health` endpoint for monitoring instance status and disk health.
 * **Fortify Integration:** Robust authentication flow including password resets and email verification.
 
-## 📦 Deployment & Installation
+## Roadmap
+
+* Make installation in production environments easier
+
+## Deployment & Installation
 
 ### 1. Requirements
+
 * PHP 8.2+
 * MariaDB / MySQL / Postgres / SQLite
 * Composer
-* A Linux host (Ubuntu/Debian recommended) or a Container environment.
 
 ### 2. Guided Installation
 
@@ -101,7 +106,7 @@ php artisan sharemeister:install
 
 The `sharemeister:install` command will guide you through naming your instance, creating the primary Admin account, and setting default storage limits.
 
-## 🏗️ Development Environment
+## Development Environment
 We provide a containerized setup for rapid development.
 
 1. Build Image: `cd Docker && docker build . -t sharemeister-app:dev`
@@ -118,7 +123,7 @@ docker run -it --rm --network sharemeister \
 6. Initialize: `php artisan migrate --seed`
 7. Install: `php sharemeister:install`
 
-## 📡 API & Metrics
+## API & Metrics
 
 Sharemeister provides a health endpoint for monitoring tools (Grafana/Prometheus/Zabbix):
 
@@ -126,19 +131,29 @@ Sharemeister provides a health endpoint for monitoring tools (Grafana/Prometheus
 
 ```json
 {
-  "instance_name": "Sharemeister Homelab",
-  "status": "ok",
-  "metrics": {
-    "total_storage_used_mb": 1240.5,
-    "disk_free_space_gb": 45.2
+  "instance_name":"Lokale Testinstanz",
+  "status":"ok",
+  "version":"1.0.5",
+  "build":"20260613",
+  "timestamp":"2026-06-13T12:41:47+00:00",
+  "metrics":{
+    "total_users":1,
+    "total_screenshots":4,
+    "total_storage_used_mb":0.14,
+    "average_screenshot_size_kb":35.5
   },
-  "health": {
-    "database": "healthy",
-    "storage_writable": true
-  }
+  "health":
+    {
+      "database":"healthy",
+      "storage_writable":true,
+      "php_version":"8.3.31",
+      "disk_free_space_gb":128.48
+    }
 }
 ```
 
-🤝 Contributing
+## Contributing + Disclaimer
 
-Created with ❤️ for the self-hosting community.
+This project initially started without the use of AI. Since then, the world has changed and I've used AI to generate many parts of this project. This is not because I'm to lazy to learn stuff, but rather cause I want to get something running quickly. I am doing this in my free time and this is not my main hobby nor job. I'm a Sysadmin and not a developer.
+
+Feel free to contribute new features/bug fixes/etc!
