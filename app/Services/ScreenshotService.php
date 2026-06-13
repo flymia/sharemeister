@@ -14,6 +14,24 @@ class ScreenshotService
     {
         // Check if $file is a path (string) or an UploadedFile (object)
         $isPath = is_string($file);
+        
+        // 1. Duplicate Finder Check
+        // Get the actual system path to calculate the SHA-256 hash of the original file
+        $realPath = $isPath ? $file : $file->getRealPath();
+        $fileHash = hash_file('sha256', $realPath);
+
+        // Check if this specific user already uploaded the exact same file
+        $existingScreenshot = Screenshot::where('uploader_id', $user->id)
+            ->where('file_hash', $fileHash)
+            ->first();
+
+        if ($existingScreenshot) {
+            // Duplicate found! Return the existing record immediately to prevent double processing and save storage
+            // This prevents user confusion without wasting storage space
+            $existingScreenshot->touch();
+            return $existingScreenshot;
+        }
+
         $fileSizeKbOriginal = $isPath 
             ? round(filesize($file) / 1024) 
             : round($file->getSize() / 1024);
@@ -90,11 +108,12 @@ class ScreenshotService
             }
         }
 
-        // 4. Create Database Entry
+        // 4. Create Database Entry (Including the original file hash)
         return Screenshot::create([
             'image' => $relativeStoragePath,
             'uploader_id' => $user->id,
             'file_size_kb' => round(filesize($fullPath) / 1024),
+            'file_hash' => $fileHash,
         ]);
     }
 

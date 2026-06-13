@@ -20,14 +20,14 @@
 <div class="mb-4">
     <label class="small fw-bold text-uppercase text-muted d-block mb-2">Filter by Tag</label>
     <div class="d-flex flex-wrap gap-2">
-        {{-- English comment: Link to reset the tag filter but keep the current sorting --}}
+        {{-- Link to reset the tag filter but keep the current sorting --}}
         <a href="{{ route('screenshot.list', ['sort' => $sort]) }}" 
            class="btn btn-sm {{ !request('tag') ? 'btn-dark shadow-sm' : 'btn-outline-secondary' }}">
             All
         </a>
         
         @foreach($allTags as $tag)
-            {{-- English comment: Each tag link preserves the sorting order --}}
+            {{-- Each tag link preserves the sorting order --}}
             <a href="{{ route('screenshot.list', ['tag' => $tag->slug, 'sort' => $sort]) }}" 
                class="btn btn-sm {{ request('tag') == $tag->slug ? 'btn-dark shadow-sm' : 'btn-outline-secondary' }}">
                 #{{ $tag->name }}
@@ -101,7 +101,7 @@
                             @method('DELETE')
                             
                             @if($scr->is_permanent)
-                                {{-- Deaktivierter Button mit Tooltip oder Hinweis --}}
+                                {{-- Deactivated button --}}
                                 <button type="button" class="btn btn-sm btn-outline-secondary border-0 opacity-50" 
                                         title="Protected: Disable protection in details to delete" disabled>
                                     <i class="bi bi-lock-fill"></i>
@@ -128,7 +128,7 @@
 </div>
 
 <div class="d-flex justify-content-center mt-5">
-    {{-- English comment: The appends() call in the controller ensures pagination links include tags/sort --}}
+    {{-- The appends() call in the controller ensures pagination links include tags/sort --}}
     {{ $screenshots->links('pagination::bootstrap-5') }}
 </div>
 
