@@ -19,3 +19,4 @@ yarn-error.log
 /.vscode
 .bash_history
 /examples
+/.composer/
