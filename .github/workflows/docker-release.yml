@@ -54,4 +54,6 @@ jobs:
              ${{ steps.meta.outputs.tags }}
              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest-arm
            labels: ${{ steps.meta.outputs.labels }}
+           cache-from: type=gha
+           cache-to: type=gha,mode=max
 
