@@ -104,11 +104,11 @@ composer install
 cp .env.example .env
 php artisan key:generate
 
-# Run the setup
+# Run the setup (Migrations and storage limits are configured automatically)
 php artisan sharemeister:install
 ```
 
-The `sharemeister:install` command will guide you through naming your instance, creating the primary Admin account, and setting default storage limits.
+The `sharemeister:install` command will guide you through naming your instance, creating the primary Admin account, and setting default storage limits. It will also automatically run any pending database migrations.
 
 ## Development Environment
 We provide a containerized setup for rapid development.

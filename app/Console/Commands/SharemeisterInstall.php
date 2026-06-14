@@ -21,7 +21,12 @@ class SharemeisterInstall extends Command
         $this->info("   Sharemeister Installation    ");
         $this->info("--------------------------------------------------");
 
-        // 1. Check if already installed
+        // 1. Run Migrations first
+        $this->info("Running database migrations...");
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $this->info(\Illuminate\Support\Facades\Artisan::output());
+
+        // 2. Check if already installed
         if ($this->isAlreadyInstalled()) {
             $this->error("Aborting: Sharemeister is already installed!");
             $this->line("At least one administrator account was found in the database.");
@@ -30,8 +35,8 @@ class SharemeisterInstall extends Command
             }
         }
 
-        // 2. Instance Configuration
-        $this->warn("\n[1/4] Instance Settings");
+        // 3. Instance Configuration
+        $this->warn("\n[1/3] Instance Settings");
         
         $instanceName = $this->askValidated(
             'What is the name of this Sharemeister Instance?',
@@ -43,8 +48,8 @@ class SharemeisterInstall extends Command
         $this->setEnv('APP_NAME', "\"$instanceName\"");
         config(['app.name' => $instanceName]);
 
-        // 3. Admin Account
-        $this->warn("\n[2/4] Administrative Account");
+        // 4. Admin Account
+        $this->warn("\n[2/3] Administrative Account");
         $name = $this->ask('Admin Name', 'Admin');
         
         $email = $this->askValidated(
@@ -61,7 +66,7 @@ class SharemeisterInstall extends Command
         );
 
         // 4. Storage Settings
-        $this->warn("\n[3/4] Storage Configuration");
+        $this->warn("\n[3/3] Storage Configuration");
         $defaultLimit = $this->askValidated(
             'Default storage limit for new users (in MB)?',
             ['required', 'integer', 'min:-1'],
@@ -78,13 +83,19 @@ class SharemeisterInstall extends Command
 
         if ($this->confirm('Proceed with installation?', true)) {
             try {
-                User::create([
-                    'name' => $name,
-                    'email' => $email,
-                    'password' => Hash::make($password),
-                    'is_admin' => true,
-                    'storage_limit_mb' => -1, // Admin is always unlimited
-                ]);
+                // 5. Wrap in transaction
+                DB::transaction(function () use ($name, $email, $password, $defaultLimit) {
+                    User::create([
+                        'name' => $name,
+                        'email' => $email,
+                        'password' => Hash::make($password),
+                        'is_admin' => true,
+                        'storage_limit_mb' => -1, // Admin is always unlimited
+                    ]);
+
+                    // Save the default limit to env
+                    $this->setEnv('DEFAULT_STORAGE_LIMIT', $defaultLimit);
+                });
 
                 $this->info("\nSharemeister instance '{$instanceName}' is now ready!");
             } catch (\Exception $e) {
