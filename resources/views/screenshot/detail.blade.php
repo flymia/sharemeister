@@ -32,7 +32,7 @@
                         
                         <div class="mb-3">
                             <label class="text-muted small text-uppercase fw-bold">File Name</label>
-                            <p class="text-truncate mb-0 font-monospace bg-light p-2 rounded small" title="{{ basename($screenshot->image) }}">
+                            <p class="text-truncate mb-0 font-monospace bg-body-secondary text-body p-2 rounded small border" title="{{ basename($screenshot->image) }}">
                                 {{ basename($screenshot->image) }}
                             </p>
                         </div>
@@ -40,7 +40,7 @@
                         <div class="mb-4">
                             <label class="text-muted small text-uppercase fw-bold">Public URL</label>
                             <div class="input-group input-group-sm mt-1">
-                                <input type="text" class="form-control font-monospace" value="{{ $screenshot->public_url }}" id="urlInput" readonly>
+                                <input type="text" class="form-control font-monospace bg-body-secondary text-body border-secondary" value="{{ $screenshot->public_url }}" id="urlInput" readonly>
                                 <button class="btn btn-outline-secondary" onclick="copyUrl(event)">
                                     <i class="bi bi-clipboard"></i>
                                 </button>
@@ -48,7 +48,7 @@
                         </div>
                         
                         {{-- System Specs Grid --}}
-                        <div class="row g-2 mb-4 bg-light p-2 rounded border mx-0">
+                        <div class="row g-2 mb-4 bg-body-secondary text-body p-2 rounded border mx-0">
                             <div class="col-6 px-1">
                                 <label class="text-muted extra-small text-uppercase fw-bold d-block mb-1">File Size</label>
                                 <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle font-monospace d-inline-block">
@@ -57,7 +57,7 @@
                             </div>
                             <div class="col-6 px-1">
                                 <label class="text-muted extra-small text-uppercase fw-bold d-block mb-1">Last Modified</label>
-                                <span class="small text-dark fw-bold d-block mt-1" title="{{ $screenshot->updated_at->format('d.M.Y H:i:s') }}">
+                                <span class="small text-body fw-bold d-block mt-1" title="{{ $screenshot->updated_at->format('d.M.Y H:i:s') }}">
                                     {{ $screenshot->updated_at->diffForHumans() }}
                                 </span>
                             </div>
@@ -68,7 +68,7 @@
                         {{-- Separate Form for Protection Toggle --}}
                         <form action="{{ route('screenshot.update-metadata', $screenshot) }}" method="POST" id="toggleForm" class="mb-3">
                             @csrf
-                            <div class="p-2 rounded border-start border-4 {{ $screenshot->is_permanent ? 'border-primary bg-primary-subtle bg-opacity-10' : 'border-secondary bg-light' }}">
+                            <div class="p-2 rounded border-start border-4 {{ $screenshot->is_permanent ? 'border-primary bg-primary-subtle bg-opacity-10' : 'border-secondary bg-body-secondary' }}">
                                 <div class="form-check form-switch m-0">
                                     <input class="form-check-input cursor-pointer" type="checkbox" name="is_permanent" id="is_permanent" 
                                         {{ $screenshot->is_permanent ? 'checked' : '' }} onchange="this.form.submit()">

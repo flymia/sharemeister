@@ -5,13 +5,16 @@
 ## Features
 
 * **Screenshot upload:** Upload your screenshots using CLI or the web
-* **Storage Quotas:** Built-in quota system with visual progress bars (150MB default for users, Infinite for Admins).
+* **Storage Quotas:** Built-in quota system with visual progress bars.
+* **Metadata & Management:** 
+    * Tagging support for better organization.
+    * Persistent protection to prevent accidental deletion.
 * **UI:** Clean, modern dashboard using Bootstrap 5 with high-fidelity UI components.
 * **CLI Suite:**
     * `sharemeister:install` - Guided installation and admin enrollment.
     * `sharemeister:import` - Bulk import local directories into a user's account.
-    * `sharemeister:clear-user-storage` - Maintenance command to wipe user data.
-    * `sharemeister:user` - Manage users.
+    * `sharemeister:clear-user-screenshots` - Maintenance command to wipe user data.
+    * `sharemeister:manage-user` - Manage users.
 * **Telemetry API:** `/api/health` endpoint for monitoring instance status and disk health.
 * **Fortify Integration:** Robust authentication flow including password resets and email verification.
 * **Documentation:** See our [wiki](https://github.com/flymia/sharemeister/wiki) for documentation on how to setup Sharemeister or how to use the API.
