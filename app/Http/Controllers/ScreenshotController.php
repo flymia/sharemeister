@@ -115,9 +115,7 @@ class ScreenshotController extends Controller
     public function show(Screenshot $screenshot)
     {
         // Security Check
-        if ($screenshot->uploader_id !== auth()->id()) {
-            abort(403);
-        }
+        $this->authorize('view', $screenshot);
 
         // Falls du Tags nachladen willst (Eager Loading für die Performance)
         $screenshot->load('tags');
@@ -144,9 +142,7 @@ class ScreenshotController extends Controller
     public function destroy(Screenshot $screenshot)
     {
         // 1. Security check: Only the owner can delete
-        if ($screenshot->uploader_id !== auth()->id()) {
-            abort(403);
-        }
+        $this->authorize('delete', $screenshot);
 
         // 2. Protection check: Prevent accidental deletion
         if ($screenshot->is_permanent) {
@@ -166,35 +162,10 @@ class ScreenshotController extends Controller
     /**
      * Main dashboard view with statistics and storage visualization.
      */
-    public function dashboard()
+    public function dashboard(\App\Services\DashboardService $dashboardService)
     {
-        $user = Auth::user();
-        
-        $screenshots = Screenshot::where('uploader_id', $user->id)
-            ->latest()
-            ->take(6)
-            ->get();
-
-        $totalCount = Screenshot::where('uploader_id', $user->id)->count();
-        $totalSizeKb = Screenshot::where('uploader_id', $user->id)->sum('file_size_kb');
-        $totalSizeMb = round($totalSizeKb / 1024, 2);
-        
-        $limit = $user->storage_limit_mb;
-        $usagePercent = 0;
-        
-        if ($limit > 0) {
-            $usagePercent = round(($totalSizeMb / $limit) * 100, 2);
-            // Cap the progress bar at 100%
-            if ($usagePercent > 100) $usagePercent = 100;
-        }
-
-        return view('dashboard.dashboard', [
-            'screenshots' => $screenshots,
-            'totalCount' => $totalCount,
-            'totalSize' => $totalSizeMb,
-            'limit' => $limit,
-            'usagePercent' => $usagePercent
-        ]);
+        $data = $dashboardService->getDashboardData(auth()->user());
+        return view('dashboard.dashboard', $data);
     }
 
     /**
@@ -233,36 +204,37 @@ class ScreenshotController extends Controller
     public function updateMetadata(Request $request, Screenshot $screenshot)
     {
         // Security Check: Only the uploader can edit
-        if (auth()->id() !== $screenshot->uploader_id) {
-            abort(403);
-        }
+        $this->authorize('update', $screenshot);
 
         // Validation
         $request->validate([
             'tags' => 'nullable|string',
-            'is_permanent' => 'nullable|string' // Checkboxes send string "on" or null
         ]);
 
-        // 1. Handle Protection Status
-        // If the checkbox is present, it's true, otherwise false
-        $screenshot->is_permanent = $request->has('is_permanent');
-        
-        // 2. Handle Tags (Dein bisheriger Code, nur zur Vollständigkeit)
-        $tagNames = collect(explode(',', $request->tags))
-            ->map(fn($t) => trim($t))
-            ->filter()
-            ->unique();
-        
-        $tagIds = [];
-        foreach ($tagNames as $name) {
-            $tag = Tag::firstOrCreate(['name' => $name]);
-            $tagIds[] = $tag->id;
+        // Toggle form submit: checkbox field is NOT guaranteed to be in request if unchecked
+        // Instead of checking for 'is_permanent', let's check if the request contains the form signature
+        if ($request->has('_token') && !$request->has('tags') && count($request->all()) <= 3) {
+            $screenshot->update([
+                'is_permanent' => $request->boolean('is_permanent')
+            ]);
+            return back()->with('success', 'Protection status updated.');
         }
-        $screenshot->tags()->sync($tagIds);
 
-        // This will trigger 'updated_at' automatically!
-        $screenshot->save();
+        // Tag form submit
+        if ($request->has('tags') || $request->has('_token')) {
+            $screenshot->update([
+                'is_permanent' => $request->boolean('is_permanent')
+            ]);
+            
+            // Handle Tags
+            if ($request->filled('tags')) {
+                $screenshot->syncTags($request->tags);
+            } else {
+                $screenshot->tags()->detach();
+            }
+            return back()->with('success', 'Metadata updated.');
+        }
 
-        return back()->with('success', 'Metadata and protection status updated.');
+        return back();
     }
 }

@@ -73,4 +73,19 @@ class Screenshot extends Model
         return $this->update(['is_permanent' => !$this->is_permanent]);
     }
 
+    public function syncTags(string $tagString): void
+    {
+        $tagNames = collect(explode(',', $tagString))
+            ->map(fn($t) => trim($t))
+            ->filter()
+            ->unique();
+        
+        $tagIds = [];
+        foreach ($tagNames as $name) {
+            $tag = Tag::firstOrCreate(['name' => $name]);
+            $tagIds[] = $tag->id;
+        }
+        $this->tags()->sync($tagIds);
+    }
+
 }
