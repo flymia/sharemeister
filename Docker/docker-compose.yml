@@ -1,24 +1,62 @@
-# Docker Compose file for the dev environment.
+# Single-file development environment for Sharemeister.
+#
+# Usage (from the repo root):
+#   docker compose -f Docker/docker-compose.yml up --build
+#
+# On first startup the app container waits for the database to become healthy,
+# runs the migrations, then serves the app at http://localhost:8000.
+#
+#   App:         http://localhost:8000
+#   phpMyAdmin:  http://localhost:8080
+#   Mail (UI):   http://localhost:8081   (SMTP on :2525)
 
 services:
+    app:
+        build:
+            context: ..
+            dockerfile: Docker/Dockerfile
+        image: sharemeister-app:dev
+        container_name: sharemeister-app
+        entrypoint: ["sh", "/app/Docker/dev-entrypoint.sh"]
+        depends_on:
+            db:
+                condition: service_healthy
+        networks:
+            - "sharemeister"
+        ports:
+            - "8000:8000"
+        volumes:
+            - "..:/app"
+
     db:
         image: docker.io/mariadb:lts
         container_name: sharemeister-db
         networks:
-            -  "sharemeister"
+            - "sharemeister"
         ports:
             - "3306:3306"
         environment:
-            MYSQL_ALLOW_EMPTY_PASSWORD: true
+            MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "true"
+            MARIADB_DATABASE: sharemeister-db
+        volumes:
+            - "db-data:/var/lib/mysql"
+        healthcheck:
+            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+            interval: 5s
+            timeout: 5s
+            retries: 12
 
     phpmyadmin:
         image: docker.io/phpmyadmin:latest
         container_name: sharemeister-phpmyadmin
+        depends_on:
+            - db
         networks:
             - "sharemeister"
         ports:
             - "8080:80"
         environment:
+            - PMA_HOST=sharemeister-db
             - PMA_USER=root
             - UPLOAD_LIMIT=300M
 
@@ -34,4 +72,7 @@ services:
 networks:
     sharemeister:
         name: sharemeister
-        external: true
+
+volumes:
+    db-data:
+        name: sharemeister-db-data
