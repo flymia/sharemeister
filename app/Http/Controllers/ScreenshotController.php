@@ -5,10 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Screenshot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use App\Models\Tag;
 use App\Services\ScreenshotService;
 
 class ScreenshotController extends Controller
@@ -127,9 +124,9 @@ class ScreenshotController extends Controller
      * Serve the raw image file.
      */
     public function rawShow($filename) {
-        // Anchor on the path separator so a basename matches exactly one stored image
-        // (an unanchored '%'.$filename would also match e.g. 'xabc.webp' for 'abc.webp').
-        $screenshot = Screenshot::where('image', 'like', '%/' . $filename)->firstOrFail();
+        // Equality lookup on the indexed `filename` (basename) column - the basename is
+        // globally unique by design, so this serves the hot image path without a table scan.
+        $screenshot = Screenshot::where('filename', $filename)->firstOrFail();
 
         $contentType = match (strtolower(pathinfo($screenshot->image, PATHINFO_EXTENSION))) {
             'gif'         => 'image/gif',
@@ -138,8 +135,23 @@ class ScreenshotController extends Controller
             default       => 'image/webp',
         };
 
+        // Stored images are immutable (random, content-addressed names) so they can be
+        // cached aggressively by browsers and any upstream proxy/CDN.
+        $cacheControl = 'public, max-age=31536000, immutable';
+
+        // In production, hand the file off to nginx instead of streaming bytes through
+        // PHP-FPM. The DB lookup above stays in PHP; nginx serves from the internal location.
+        if (config('app.x_accel_redirect')) {
+            return response('', 200, [
+                'Content-Type'      => $contentType,
+                'Cache-Control'     => $cacheControl,
+                'X-Accel-Redirect'  => '/internal-storage/' . $screenshot->image,
+            ]);
+        }
+
         return response()->file(storage_path('app/public/' . $screenshot->image), [
-            'Content-Type' => $contentType,
+            'Content-Type'  => $contentType,
+            'Cache-Control' => $cacheControl,
         ]);
     }
 
@@ -215,12 +227,12 @@ class ScreenshotController extends Controller
 
         // Validation
         $request->validate([
+            'form' => 'required|in:protection,tags',
             'tags' => 'nullable|string',
         ]);
 
-        // Toggle form submit: checkbox field is NOT guaranteed to be in request if unchecked
-        // Instead of checking for 'is_permanent', let's check if the request contains the form signature
-        if ($request->has('_token') && !$request->has('tags') && count($request->all()) <= 3) {
+        // The submitting form declares itself explicitly so each updates only its own fields.
+        if ($request->input('form') === 'protection') {
             $screenshot->update([
                 'is_permanent' => $request->boolean('is_permanent')
             ]);
@@ -228,20 +240,12 @@ class ScreenshotController extends Controller
         }
 
         // Tag form submit
-        if ($request->has('tags') || $request->has('_token')) {
-            $screenshot->update([
-                'is_permanent' => $request->boolean('is_permanent')
-            ]);
-            
-            // Handle Tags
-            if ($request->filled('tags')) {
-                $screenshot->syncTags($request->tags);
-            } else {
-                $screenshot->tags()->detach();
-            }
-            return back()->with('success', 'Metadata updated.');
+        if ($request->filled('tags')) {
+            $screenshot->syncTags($request->tags);
+        } else {
+            $screenshot->tags()->detach();
         }
 
-        return back();
+        return back()->with('success', 'Metadata updated.');
     }
 }

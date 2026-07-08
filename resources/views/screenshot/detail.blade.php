@@ -68,6 +68,7 @@
                         {{-- Separate Form for Protection Toggle --}}
                         <form action="{{ route('screenshot.update-metadata', $screenshot) }}" method="POST" id="toggleForm" class="mb-3">
                             @csrf
+                            <input type="hidden" name="form" value="protection">
                             <div class="p-2 rounded border-start border-4 {{ $screenshot->is_permanent ? 'border-primary bg-primary-subtle bg-opacity-10' : 'border-secondary bg-body-secondary' }}">
                                 <div class="form-check form-switch m-0">
                                     <input class="form-check-input cursor-pointer" type="checkbox" name="is_permanent" id="is_permanent" 
@@ -83,6 +84,7 @@
                         {{-- Separate Form for Tags --}}
                         <form action="{{ route('screenshot.update-metadata', $screenshot) }}" method="POST">
                             @csrf
+                            <input type="hidden" name="form" value="tags">
                             {{-- Keep the permanent status hidden so it doesn't get overwritten when saving tags --}}
                             <input type="hidden" name="is_permanent" value="{{ $screenshot->is_permanent ? '1' : '0' }}">
                             

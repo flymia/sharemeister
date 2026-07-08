@@ -4,15 +4,15 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Ramsey\Uuid\Type\Integer;
 use App\Models\Tag;
 
 class Screenshot extends Model
 {
     use HasUuids, HasFactory;
 
-    protected $fillable = ['uploader_id', 'image', 'file_size_kb', 'created_at', 'is_permanent', 'file_hash'];
+    protected $fillable = ['uploader_id', 'image', 'filename', 'file_size_kb', 'created_at', 'is_permanent', 'file_hash'];
     protected $appends = ['public_url'];
 
     protected $casts = [
@@ -27,16 +27,16 @@ class Screenshot extends Model
         );
     }
 
-    public function getFileSizeKbAttribute()
+    /**
+     * Actual on-disk size in KB, read from the filesystem. The stored `file_size_kb`
+     * column (written at upload time) is the source of truth for quota/UI; use this only
+     * when you explicitly need to reconcile against disk.
+     */
+    public function actualFileSizeKb(): ?int
     {
         $filePath = storage_path('app/public/' . $this->image);
 
-        if (file_exists($filePath)) {
-            // Show it in Kilobyte
-            return round(filesize($filePath) / 1024);
-        }
-
-        return null; // Null if the file does not exist for some reason.
+        return file_exists($filePath) ? (int) round(filesize($filePath) / 1024) : null;
     }
 
     public function uploader(): BelongsTo

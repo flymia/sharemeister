@@ -125,4 +125,16 @@ return [
 
     'max_upload_size' => env('MAX_UPLOAD_SIZE_KB', 10240),
 
+    // Reject images whose total pixel count exceeds this cap before decoding, to guard
+    // against decompression bombs that would allocate a huge GD bitmap in memory.
+    'max_image_pixels' => env('MAX_IMAGE_PIXELS', 40000000),
+
+    // WebP encode quality (0-100) for converted uploads.
+    'webp_quality' => env('WEBP_QUALITY', 80),
+
+    // When true (production nginx), raw images are handed off to nginx via X-Accel-Redirect
+    // so image bytes are served by nginx instead of streaming through PHP-FPM. Requires the
+    // internal `/internal-storage/` location in nginx.conf. Off by default for local dev.
+    'x_accel_redirect' => env('X_ACCEL_REDIRECT', false),
+
 ];

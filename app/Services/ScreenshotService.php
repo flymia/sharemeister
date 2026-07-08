@@ -65,9 +65,9 @@ class ScreenshotService
 
             // The basename must be globally unique: it is the only identifier used to
             // serve the raw image, and folders differ by user/date, so a full-path check
-            // alone would allow the same basename in two different folders.
-            $exists = Screenshot::where('image', $relativeStoragePath)->exists()
-                    || Screenshot::where('image', 'like', '%/' . $imageName)->exists()
+            // alone would allow the same basename in two different folders. The indexed
+            // `filename` column makes this an equality lookup instead of an unindexable LIKE.
+            $exists = Screenshot::where('filename', $imageName)->exists()
                     || Storage::disk('public')->exists($relativeStoragePath);
         } while ($exists);
 
@@ -80,12 +80,15 @@ class ScreenshotService
         // 3. Process & Convert
         if ($mime === 'image/gif') {
             // Use File::copy for strings (CLI) and storeAs for UploadedFiles (Web)
-            $isPath 
-                ? File::copy($file, $fullPath) 
+            $isPath
+                ? File::copy($file, $fullPath)
                 : $file->storeAs($folderPath, $imageName, 'public');
         } else {
             $image = $this->createImageResource($file);
             if ($image) {
+                // Honor EXIF orientation (GD ignores it), so rotated photos are stored upright.
+                $image = $this->applyExifOrientation($image, $file, $mime);
+
                 // Fix Palette/Indexed images. imagepalettetotruecolor() keeps the alpha
                 // channel, unlike a manual imagecreatetruecolor()/imagecopy() which would
                 // flatten transparency onto an opaque black canvas.
@@ -98,26 +101,33 @@ class ScreenshotService
                 imagealphablending($image, false);
                 imagesavealpha($image, true);
 
-                imagewebp($image, $fullPath, 80);
+                imagewebp($image, $fullPath, (int) config('app.webp_quality', 80));
 
                 imagedestroy($image);
                 // Explicitly unset to help the Garbage Collector
                 unset($image);
             } else {
                 // Fallback for unsupported formats
-                $isPath 
-                    ? File::copy($file, $fullPath) 
+                $isPath
+                    ? File::copy($file, $fullPath)
                     : $file->storeAs($folderPath, $imageName, 'public');
             }
         }
 
-        // 4. Create Database Entry (Including the original file hash)
-        return Screenshot::create([
-            'image' => $relativeStoragePath,
-            'uploader_id' => $user->id,
-            'file_size_kb' => round(filesize($fullPath) / 1024),
-            'file_hash' => $fileHash,
-        ]);
+        // 4. Create Database Entry (Including the original file hash). If the insert fails,
+        // delete the just-written file so we never leave an orphan on disk.
+        try {
+            return Screenshot::create([
+                'image' => $relativeStoragePath,
+                'filename' => $imageName,
+                'uploader_id' => $user->id,
+                'file_size_kb' => round(filesize($fullPath) / 1024),
+                'file_hash' => $fileHash,
+            ]);
+        } catch (\Throwable $e) {
+            Storage::disk('public')->delete($relativeStoragePath);
+            throw $e;
+        }
     }
 
     /**
@@ -127,9 +137,19 @@ class ScreenshotService
     {
         // Get the actual system path regardless of input type
         $path = is_string($file) ? $file : $file->getRealPath();
-        
+
         // Get the mime type correctly
         $mime = is_string($file) ? File::mimeType($file) : $file->getMimeType();
+
+        // Guard against decompression bombs: reject before decode if the pixel count would
+        // allocate a huge GD bitmap (~width*height*4 bytes) regardless of the small file size.
+        $dimensions = @getimagesize($path);
+        if ($dimensions) {
+            $maxPixels = (int) config('app.max_image_pixels', 40000000);
+            if ($maxPixels > 0 && ($dimensions[0] * $dimensions[1]) > $maxPixels) {
+                throw new \Exception('Image dimensions are too large.');
+            }
+        }
 
         return match($mime) {
             'image/jpeg' => imagecreatefromjpeg($path),
@@ -138,5 +158,35 @@ class ScreenshotService
             'image/webp' => imagecreatefromwebp($path),
             default      => null,
         };
+    }
+
+    /**
+     * Rotate/flip a GD image according to the source JPEG's EXIF orientation tag.
+     * GD does not apply orientation itself, so without this rotated photos are stored
+     * sideways. Returns the (possibly new) image resource.
+     */
+    private function applyExifOrientation($image, $file, string $mime)
+    {
+        if ($mime !== 'image/jpeg' || !function_exists('exif_read_data')) {
+            return $image;
+        }
+
+        $path = is_string($file) ? $file : $file->getRealPath();
+        $exif = @exif_read_data($path);
+        $orientation = $exif['Orientation'] ?? 1;
+
+        $rotated = match ((int) $orientation) {
+            3 => imagerotate($image, 180, 0),
+            6 => imagerotate($image, -90, 0),
+            8 => imagerotate($image, 90, 0),
+            default => null,
+        };
+
+        if ($rotated !== null && $rotated !== false) {
+            imagedestroy($image);
+            return $rotated;
+        }
+
+        return $image;
     }
 }
