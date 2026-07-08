@@ -8,7 +8,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use Carbon\Carbon;
-use Intervention\Image\Facades\Image;
 
 class ImportScreenshot extends Command
 {
@@ -109,33 +108,38 @@ class ImportScreenshot extends Command
             return;
         }
 
-        // --- Metadata Stripping & Image Processing ---
-        // Load image to strip EXIF but keep orientation/quality
-        $img = Image::make($absolutePath);
-
-        // Strip all metadata (GPS, Camera info, etc.)
-        $encoded = $img->encode(null, 90);
+        // Per-user dedup so re-running the import is idempotent and stays
+        // consistent with the web/API upload pipeline.
+        $fileHash = hash_file('sha256', $absolutePath);
+        if (Screenshot::where('uploader_id', $user->id)->where('file_hash', $fileHash)->exists()) {
+            $this->warn("Skipping {$filename}: already imported for {$user->email}");
+            return;
+        }
 
         // --- Path Logic (Keeping Original Filename) ---
+        // Imported files intentionally keep their original filename AND extension
+        // and are copied byte-for-byte (no WebP conversion / re-encode) so that
+        // legacy share URLs from the previous server keep resolving.
         $targetPath = "screenshots/{$user->id}/" . $filename;
 
         // Quota Check
         $fileSizeKb = round(File::size($absolutePath) / 1024);
         $currentUsageMb = Screenshot::where('uploader_id', $user->id)->sum('file_size_kb') / 1024;
-        
+
         if ($user->storage_limit_mb != -1 && ($currentUsageMb + ($fileSizeKb / 1024)) > $user->storage_limit_mb) {
             $this->error("Quota exceeded for {$user->email}. Skipping {$filename}");
             return;
         }
 
-        // Save stripped image to storage
-        Storage::disk('public')->put($targetPath, (string) $img->encode());
+        // Copy the original file as-is to preserve exact bytes and extension.
+        Storage::disk('public')->put($targetPath, File::get($absolutePath));
 
         // Create DB Record
         Screenshot::create([
             'uploader_id' => $user->id,
             'image' => $targetPath,
             'file_size_kb' => $fileSizeKb,
+            'file_hash' => $fileHash,
             'created_at' => Carbon::parse($date),
         ]);
 
