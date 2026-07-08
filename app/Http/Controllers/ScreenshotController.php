@@ -93,7 +93,7 @@ class ScreenshotController extends Controller
             'image' => 'required|array',
             'image.*' => [
                 'image',
-                'mimes:jpeg,png,jpg,gif',
+                'mimes:jpeg,png,jpg,gif,webp',
                 "max:{$maxSize}" // The variable must be defined in THIS method
             ],
         ]);
@@ -127,12 +127,19 @@ class ScreenshotController extends Controller
      * Serve the raw image file.
      */
     public function rawShow($filename) {
-        $screenshot = Screenshot::where('image', 'like', '%' . $filename)->firstOrFail();
-        
-        // Instead of letting PHP read the file, we tell Nginx to do it
-        // This is much faster and bypasses PHP's memory limit
+        // Anchor on the path separator so a basename matches exactly one stored image
+        // (an unanchored '%'.$filename would also match e.g. 'xabc.webp' for 'abc.webp').
+        $screenshot = Screenshot::where('image', 'like', '%/' . $filename)->firstOrFail();
+
+        $contentType = match (strtolower(pathinfo($screenshot->image, PATHINFO_EXTENSION))) {
+            'gif'         => 'image/gif',
+            'png'         => 'image/png',
+            'jpg', 'jpeg' => 'image/jpeg',
+            default       => 'image/webp',
+        };
+
         return response()->file(storage_path('app/public/' . $screenshot->image), [
-            'Content-Type' => 'image/png', // or dynamic
+            'Content-Type' => $contentType,
         ]);
     }
 
@@ -174,7 +181,7 @@ class ScreenshotController extends Controller
     public function apiUpload(Request $request)
     {
         $request->validate([
-            'image' => 'required|image|max:' . config('app.max_upload_size'),
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:' . config('app.max_upload_size'),
         ]);
 
         $screenshot = $this->handleUpload($request->file('image'));
@@ -192,7 +199,7 @@ class ScreenshotController extends Controller
     public function apiUploadRaw(Request $request)
     {
         $request->validate([
-            'image' => 'required|image|max:' . config('app.max_upload_size'),
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:' . config('app.max_upload_size'),
         ]);
 
         $screenshot = $this->handleUpload($request->file('image'));

@@ -63,7 +63,11 @@ class ScreenshotService
             $imageName = $randomName . '.' . $extension;
             $relativeStoragePath = $folderPath . '/' . $imageName;
 
-            $exists = Screenshot::where('image', $relativeStoragePath)->exists() 
+            // The basename must be globally unique: it is the only identifier used to
+            // serve the raw image, and folders differ by user/date, so a full-path check
+            // alone would allow the same basename in two different folders.
+            $exists = Screenshot::where('image', $relativeStoragePath)->exists()
+                    || Screenshot::where('image', 'like', '%/' . $imageName)->exists()
                     || Storage::disk('public')->exists($relativeStoragePath);
         } while ($exists);
 
@@ -82,24 +86,23 @@ class ScreenshotService
         } else {
             $image = $this->createImageResource($file);
             if ($image) {
-                // Fix Palette/Indexed images
+                // Fix Palette/Indexed images. imagepalettetotruecolor() keeps the alpha
+                // channel, unlike a manual imagecreatetruecolor()/imagecopy() which would
+                // flatten transparency onto an opaque black canvas.
                 if (!imageistruecolor($image)) {
-                    $trueColorImage = imagecreatetruecolor(imagesx($image), imagesy($image));
-                    imagecopy($trueColorImage, $image, 0, 0, 0, 0, imagesx($image), imagesy($image));
-                    imagedestroy($image);
-                    $image = $trueColorImage;
+                    imagepalettetotruecolor($image);
                 }
+
+                // Preserve transparency in the WebP output; without these calls imagewebp()
+                // flattens transparent pixels to black.
+                imagealphablending($image, false);
+                imagesavealpha($image, true);
+
                 imagewebp($image, $fullPath, 80);
-                
+
                 imagedestroy($image);
                 // Explicitly unset to help the Garbage Collector
                 unset($image);
-
-                // If you created a trueColorImage, make sure it's destroyed too
-                if (isset($trueColorImage)) {
-                    imagedestroy($trueColorImage);
-                    unset($trueColorImage);
-                }
             } else {
                 // Fallback for unsupported formats
                 $isPath 
@@ -132,6 +135,7 @@ class ScreenshotService
             'image/jpeg' => imagecreatefromjpeg($path),
             'image/png'  => imagecreatefrompng($path),
             'image/gif'  => imagecreatefromgif($path),
+            'image/webp' => imagecreatefromwebp($path),
             default      => null,
         };
     }
