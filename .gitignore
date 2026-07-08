@@ -20,3 +20,4 @@ yarn-error.log
 .bash_history
 /examples
 /.composer/
+/.claude/
