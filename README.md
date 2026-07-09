@@ -13,8 +13,8 @@
 * **CLI Suite:**
     * `sharemeister:install` - Guided installation and admin enrollment.
     * `sharemeister:import` - Bulk import local directories into a user's account.
-    * `sharemeister:clear-user-screenshots` - Maintenance command to wipe user data.
-    * `sharemeister:manage-user` - Manage users.
+    * `sharemeister:clear-user-storage` - Maintenance command to wipe user data.
+    * `sharemeister:user` - Manage users.
 * **Telemetry API:** `/api/health` endpoint for monitoring instance status and disk health.
 * **Fortify Integration:** Robust authentication flow including password resets and email verification.
 * **Documentation:** See our [wiki](https://github.com/flymia/sharemeister/wiki) for documentation on how to setup Sharemeister or how to use the API.
@@ -137,9 +137,9 @@ Sharemeister provides a health endpoint for monitoring tools (Grafana/Prometheus
 {
   "instance_name":"Lokale Testinstanz",
   "status":"ok",
-  "version":"1.0.5",
-  "build":"20260613",
-  "timestamp":"2026-06-13T12:41:47+00:00",
+  "version":"1.0.9",
+  "build":"20260709",
+  "timestamp":"2026-07-09T12:41:47+00:00",
   "metrics":{
     "total_users":1,
     "total_screenshots":4,
@@ -161,3 +161,7 @@ Sharemeister provides a health endpoint for monitoring tools (Grafana/Prometheus
 This project initially started without the use of AI. Since then, the world has changed and I've used AI to generate many parts of this project. This is not because I'm to lazy to learn stuff, but rather cause I want to get something running quickly. I am doing this in my free time and this is not my main hobby nor job. I'm a Sysadmin and not a developer.
 
 Feel free to contribute new features/bug fixes/etc!
+
+## License
+
+Sharemeister is licensed under the **GNU General Public License v3.0**. See [LICENSE](LICENSE) for the full text.
