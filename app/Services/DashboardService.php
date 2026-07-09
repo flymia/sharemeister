@@ -15,6 +15,9 @@ class DashboardService
             ->get();
 
         $totalCount = Screenshot::where('uploader_id', $user->id)->count();
+        $permanentCount = Screenshot::where('uploader_id', $user->id)
+            ->where('is_permanent', true)
+            ->count();
         $totalSizeKb = Screenshot::where('uploader_id', $user->id)->sum('file_size_kb');
         $totalSizeMb = round($totalSizeKb / 1024, 2);
         
@@ -30,6 +33,7 @@ class DashboardService
         return [
             'screenshots' => $screenshots,
             'totalCount' => $totalCount,
+            'permanentCount' => $permanentCount,
             'totalSize' => $totalSizeMb,
             'limit' => $limit,
             'usagePercent' => $usagePercent

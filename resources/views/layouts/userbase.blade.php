@@ -49,12 +49,26 @@
         .card { border: none; transition: all 0.2s ease; }
         .footer { background: #1a1d20; }
 
-        /* Falls du spezifische Farben für den Darkmode anpassen willst */
-        [data-bs-theme="dark"] body {
-            background-color: #121212; /* Etwas dunkler als der Standard-Grey */
+        /* Shared helpers used across dashboard/library/detail views */
+        .extra-small { font-size: 0.75rem; }
+        .object-fit-cover { object-fit: cover; }
+        .copy-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 9999;
+            background: #198754;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.2);
         }
 
-        /* Deine Karten-Styles brauchen evtl. Anpassung für Darkmode */
+        /* Dark mode overrides */
+        [data-bs-theme="dark"] body {
+            background-color: #121212; /* Slightly darker than the default grey */
+        }
+
         [data-bs-theme="dark"] .card {
             background-color: #1e1e1e;
             border: 1px solid #333;
@@ -102,5 +116,22 @@
 
     <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
+
+    <script>
+        // Shared clipboard helper used across dashboard/library/detail views.
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.createElement('div');
+                toast.className = 'copy-toast shadow-lg';
+                toast.innerHTML = '<i class="bi bi-check-lg me-2"></i> Link copied!';
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.transition = 'opacity 0.5s ease';
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 500);
+                }, 2000);
+            });
+        }
+    </script>
 </body>
 </html>

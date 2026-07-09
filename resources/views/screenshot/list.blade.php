@@ -188,26 +188,12 @@
     .screenshot-card:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important; }
     .img-hover { transition: transform 0.5s ease; }
     .screenshot-card:hover .img-hover { transform: scale(1.1); }
-    .extra-small { font-size: 0.75rem; }
-    .object-fit-cover { object-fit: cover; }
 
     /* Keep the tag filter bar from growing unbounded when a user has many tags */
     .tag-filter-bar { max-height: 6.5rem; overflow-y: auto; }
 
     /* Restore a visible focus ring on the clickable thumbnail (hover CSS aside) */
     .screenshot-card a.ratio:focus-visible { outline: 3px solid var(--bs-primary); outline-offset: 2px; }
-    
-    .copy-toast {
-        position: fixed;
-        bottom: 2rem;
-        right: 2rem;
-        z-index: 9999;
-        background: #198754;
-        color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.2);
-    }
 </style>
 
 <script>
@@ -223,20 +209,6 @@
         urlParams.delete('page'); 
 
         window.location.href = `{{ route('screenshot.list') }}?${urlParams.toString()}`;
-    }
-
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            const toast = document.createElement('div');
-            toast.className = 'copy-toast shadow-lg';
-            toast.innerHTML = '<i class="bi bi-check-lg me-2"></i> Link copied!';
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.style.transition = 'opacity 0.5s ease';
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 500);
-            }, 2000);
-        });
     }
 
     // Populate the shared delete modal with the clicked screenshot's form action + name
