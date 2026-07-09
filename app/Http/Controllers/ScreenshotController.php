@@ -30,8 +30,9 @@ class ScreenshotController extends Controller
 
     public function index(Request $request)
     {
-        $sort = $request->query('sort', 'created_at');
+        $sort = $request->query('sort', 'newest');
         $tagFilter = $request->query('tag'); // Der Slug des Tags
+        $search = trim((string) $request->query('q', ''));
 
         // Eager loading der Tags für die Badges in der Liste
         $query = Screenshot::with('tags')->where('uploader_id', Auth::id());
@@ -43,17 +44,19 @@ class ScreenshotController extends Controller
             });
         }
 
-        // Sortierung
-        if ($sort === 'created_at_desc') {
-            $query->orderBy('created_at', 'asc');
-        } else {
-            $query->orderBy('created_at', 'desc');
+        // Filename-Suche (basename liegt auf der indizierten `filename`-Spalte)
+        if ($search !== '') {
+            $query->where('filename', 'like', '%' . $search . '%');
         }
+
+        // Sortierung: standardmäßig neueste zuerst, auf Wunsch älteste zuerst
+        $query->orderBy('created_at', $sort === 'oldest' ? 'asc' : 'desc');
 
         // Pagination (Wichtig: appends sorgt dafür, dass die URL-Parameter beim Umblättern erhalten bleiben)
         $screenshots = $query->paginate(12)->appends([
             'sort' => $sort,
-            'tag' => $tagFilter
+            'tag' => $tagFilter,
+            'q' => $search !== '' ? $search : null,
         ]);
 
         // Für die Filter-Bar brauchen wir alle Tags des Users
@@ -62,10 +65,11 @@ class ScreenshotController extends Controller
         })->orderBy('name')->get();
 
         return view('screenshot.list', [
-            'screenshots' => $screenshots, 
+            'screenshots' => $screenshots,
             'sort' => $sort,
             'allTags' => $allUserTags,
-            'currentTag' => $tagFilter
+            'currentTag' => $tagFilter,
+            'search' => $search,
         ]);
     }
     /**
