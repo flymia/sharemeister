@@ -39,6 +39,22 @@ class Screenshot extends Model
         return file_exists($filePath) ? (int) round(filesize($filePath) / 1024) : null;
     }
 
+    /**
+     * Pixel dimensions read from the on-disk file. Returns ['width' => int, 'height' => int]
+     * or null when the file is missing/unreadable. Read on the fly - not persisted - so it is
+     * only suitable for single-record views (e.g. the detail page), not list/hot paths.
+     */
+    public function dimensions(): ?array
+    {
+        $filePath = storage_path('app/public/' . $this->image);
+
+        if (! file_exists($filePath) || ! ($size = @getimagesize($filePath))) {
+            return null;
+        }
+
+        return ['width' => $size[0], 'height' => $size[1]];
+    }
+
     public function uploader(): BelongsTo
     {
             return $this->belongsTo(User::class, 'uploader_id');

@@ -23,7 +23,9 @@
         <div class="card shadow-sm border-0 overflow-hidden">
             <div class="row g-0">
                 <div class="col-md-8 bg-dark d-flex align-items-center justify-content-center" style="min-height: 400px;">
-                    <img src="{{ $screenshot->public_url }}" class="img-fluid shadow" alt="Screenshot" style="max-height: 80vh;">
+                    <a href="{{ $screenshot->public_url }}" target="_blank" rel="noopener" title="Open full size in new tab">
+                        <img src="{{ $screenshot->public_url }}" class="img-fluid shadow cursor-pointer" alt="Screenshot" style="max-height: 80vh;">
+                    </a>
                 </div>
 
                 <div class="col-md-4 p-4 border-start d-flex flex-column justify-content-between">
@@ -31,23 +33,34 @@
                         <h4 class="fw-bold mb-4">Properties</h4>
                         
                         <div class="mb-3">
-                            <label class="text-muted small text-uppercase fw-bold">File Name</label>
-                            <p class="text-truncate mb-0 font-monospace bg-body-secondary text-body p-2 rounded small border" title="{{ basename($screenshot->image) }}">
+                            <label for="fileNameField" class="text-muted small text-uppercase fw-bold">File Name</label>
+                            <p id="fileNameField" class="text-truncate mb-0 font-monospace bg-body-secondary text-body p-2 rounded small border" title="{{ basename($screenshot->image) }}">
                                 {{ basename($screenshot->image) }}
                             </p>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="text-muted small text-uppercase fw-bold">Public URL</label>
+                        <div class="mb-3">
+                            <label for="urlInput" class="text-muted small text-uppercase fw-bold">Public URL</label>
                             <div class="input-group input-group-sm mt-1">
                                 <input type="text" class="form-control font-monospace bg-body-secondary text-body border-secondary" value="{{ $screenshot->public_url }}" id="urlInput" readonly>
-                                <button class="btn btn-outline-secondary" onclick="copyUrl(event)">
+                                <button class="btn btn-outline-secondary" onclick="copyUrl(event)" title="Copy URL">
                                     <i class="bi bi-clipboard"></i>
                                 </button>
                             </div>
                         </div>
+
+                        {{-- Image actions --}}
+                        <div class="d-flex gap-2 mb-4">
+                            <a href="{{ $screenshot->public_url }}" download="{{ basename($screenshot->image) }}" class="btn btn-sm btn-outline-secondary flex-fill">
+                                <i class="bi bi-download me-1"></i>Download
+                            </a>
+                            <a href="{{ $screenshot->public_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary flex-fill">
+                                <i class="bi bi-box-arrow-up-right me-1"></i>Open
+                            </a>
+                        </div>
                         
-                        {{-- System Specs Grid --}}
+                        {{-- Properties grid --}}
+                        @php($dimensions = $screenshot->dimensions())
                         <div class="row g-2 mb-4 bg-body-secondary text-body p-2 rounded border mx-0">
                             <div class="col-6 px-1">
                                 <label class="text-muted extra-small text-uppercase fw-bold d-block mb-1">File Size</label>
@@ -56,7 +69,21 @@
                                 </span>
                             </div>
                             <div class="col-6 px-1">
-                                <label class="text-muted extra-small text-uppercase fw-bold d-block mb-1">Last Modified</label>
+                                <label class="text-muted extra-small text-uppercase fw-bold d-block mb-1">Format</label>
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle font-monospace d-inline-block">
+                                    <i class="bi bi-file-earmark-image me-1"></i>{{ strtoupper(pathinfo($screenshot->image, PATHINFO_EXTENSION)) }}
+                                </span>
+                            </div>
+                            @if($dimensions)
+                                <div class="col-6 px-1">
+                                    <label class="text-muted extra-small text-uppercase fw-bold d-block mb-1">Dimensions</label>
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle font-monospace d-inline-block">
+                                        <i class="bi bi-aspect-ratio me-1"></i>{{ $dimensions['width'] }} x {{ $dimensions['height'] }} px
+                                    </span>
+                                </div>
+                            @endif
+                            <div class="col-6 px-1">
+                                <label class="text-muted extra-small text-uppercase fw-bold d-block mb-1">Last Updated</label>
                                 <span class="small text-body fw-bold d-block mt-1" title="{{ $screenshot->updated_at->format('d.M.Y H:i:s') }}">
                                     {{ $screenshot->updated_at->diffForHumans() }}
                                 </span>
@@ -109,7 +136,7 @@
                             <div>
                                 <i class="bi bi-calendar3 me-1"></i> Uploaded:
                             </div>
-                            <strong class="text-dark">{{ $screenshot->created_at->format('d M Y, H:i') }}</strong>
+                            <strong class="text-body">{{ $screenshot->created_at->format('d M Y, H:i') }}</strong>
                         </div>
 
                         {{-- Delete Section --}}
@@ -146,7 +173,7 @@
                 Delete <strong>{{ basename($screenshot->image) }}</strong> permanently? This action cannot be undone.
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form action="{{ route('screenshot.delete', $screenshot) }}" method="POST" class="d-inline">
                     @csrf
                     @method('DELETE')
@@ -165,11 +192,28 @@
 </style>
 
 <script>
-    function copyUrl(event) {
+    async function copyUrl(event) {
         const copyText = document.getElementById("urlInput");
         copyText.select();
-        navigator.clipboard.writeText(copyText.value);
-        
+
+        // navigator.clipboard is only available in secure contexts (HTTPS/localhost).
+        // Self-hosted instances are often served over plain HTTP, so fall back to
+        // the legacy execCommand path there.
+        let copied = false;
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(copyText.value);
+                copied = true;
+            } else {
+                copied = document.execCommand("copy");
+            }
+        } catch (e) {
+            copied = false;
+        }
+
+        // On failure leave the text selected so the user can copy manually.
+        if (!copied) return;
+
         const btn = event.currentTarget;
         const originalContent = btn.innerHTML;
         btn.innerHTML = '<i class="bi bi-check-lg text-success"></i>';
