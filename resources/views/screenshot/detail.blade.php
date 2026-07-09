@@ -114,21 +114,17 @@
 
                         {{-- Delete Section --}}
                         <div class="d-grid pt-3 border-top">
-                            <form action="{{ route('screenshot.delete', $screenshot) }}" method="POST" onsubmit="return confirm('Are you sure?')">
-                                @csrf
-                                @method('DELETE')
-                                
-                                @if($screenshot->is_permanent)
-                                    <button type="button" class="btn btn-outline-secondary w-100 btn-sm opacity-50" disabled>
-                                        <i class="bi bi-lock-fill me-2"></i>Screenshot is Protected
-                                    </button>
-                                    <p class="extra-small text-center text-muted mt-2 mb-0">Unlock protection to delete this file.</p>
-                                @else
-                                    <button type="submit" class="btn btn-outline-danger w-100 btn-sm">
-                                        <i class="bi bi-trash3 me-2"></i>Delete Screenshot
-                                    </button>
-                                @endif
-                            </form>
+                            @if($screenshot->is_permanent)
+                                <button type="button" class="btn btn-outline-secondary w-100 btn-sm opacity-50" disabled>
+                                    <i class="bi bi-lock-fill me-2"></i>Screenshot is Protected
+                                </button>
+                                <p class="extra-small text-center text-muted mt-2 mb-0">Unlock protection to delete this file.</p>
+                            @else
+                                <button type="button" class="btn btn-outline-danger w-100 btn-sm"
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    <i class="bi bi-trash3 me-2"></i>Delete Screenshot
+                                </button>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -136,6 +132,31 @@
         </div>
     </div>
 </div>
+
+{{-- Delete confirmation modal (matches the Library list styling) --}}
+@unless($screenshot->is_permanent)
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete screenshot</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Delete <strong>{{ basename($screenshot->image) }}</strong> permanently? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ route('screenshot.delete', $screenshot) }}" method="POST" class="d-inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash3 me-1"></i>Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endunless
 
 <style>
     .font-monospace { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace !important; }
