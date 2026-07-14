@@ -111,6 +111,38 @@ class ScreenshotController extends Controller
     }
 
     /**
+     * Handle a single-file AJAX upload from the web uploader and return JSON.
+     *
+     * The web page uploads each queued file as its own XHR request so every file
+     * gets an independent progress bar and success/error result. We do NOT reuse
+     * the private handleUpload() helper here because it aborts with an HTML 403;
+     * the front-end expects JSON for both success and failure.
+     */
+    public function storeAjax(Request $request)
+    {
+        // Validation failures throw ValidationException, which Laravel renders as
+        // a 422 JSON response for AJAX requests automatically.
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:' . config('app.max_upload_size'),
+        ]);
+
+        try {
+            $screenshot = $this->service->handleUpload($request->file('image'), auth()->user());
+        } catch (\Throwable $e) {
+            // Quota / size / dimension errors from the service surface as a JSON message.
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'success'     => true,
+            'public_link' => $screenshot->public_url,
+            'filename'    => $screenshot->filename,
+            // Dedup returns an existing record that is only touch()ed, never created.
+            'duplicate'   => ! $screenshot->wasRecentlyCreated,
+        ]);
+    }
+
+    /**
      * Display screenshot detail page.
      */
     public function show(Screenshot $screenshot)

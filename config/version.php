@@ -2,6 +2,6 @@
 // config/version.php
 
 return [
-    'tag' => '1.0.9',
-    'build' => '20260709',
+    'tag' => '1.1.0',
+    'build' => '20260714',
 ];

@@ -23,6 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/screenshots/upload', [ScreenshotController::class, "create"])->name('screenshot.upload');
     Route::post('/screenshots/upload', [ScreenshotController::class, "store"])->name('screenshot.upload');
+    Route::post('/screenshots/upload/ajax', [ScreenshotController::class, "storeAjax"])->name('screenshot.upload.ajax');
 
     Route::get('/screenshots/list', [ScreenshotController::class, 'index'])->name('screenshot.list');
 
