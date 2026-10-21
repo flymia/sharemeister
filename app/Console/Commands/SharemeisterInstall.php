@@ -21,6 +21,14 @@ class SharemeisterInstall extends Command
         $this->info("   Sharemeister Installation    ");
         $this->info("--------------------------------------------------");
 
+        // The installer needs answers from a human; without a TTY every prompt
+        // silently returns its default, which would never pass validation.
+        if (!$this->input->isInteractive() || !(defined('STDIN') && stream_isatty(STDIN))) {
+            $this->error("The installer must be run interactively.");
+            $this->line("Run it from a terminal with a TTY, e.g.: docker compose exec -it app php artisan sharemeister:install");
+            return 1;
+        }
+
         // 1. Run Migrations first
         $this->info("Running database migrations...");
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
@@ -129,18 +137,23 @@ class SharemeisterInstall extends Command
      */
     protected function askValidated($question, $rules, $default = null, $customError = null, $secret = false)
     {
-        $value = $secret ? $this->secret($question) : $this->ask($question, $default);
+        $maxAttempts = 5;
 
-        $validator = Validator::make(['input' => $value], [
-            'input' => $rules
-        ]);
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            $value = $secret ? $this->secret($question) : $this->ask($question, $default);
 
-        if ($validator->fails()) {
+            $validator = Validator::make(['input' => $value], [
+                'input' => $rules
+            ], [], ['input' => 'value']);
+
+            if (!$validator->fails()) {
+                return $value;
+            }
+
             $this->error($customError ?? $validator->errors()->first('input'));
-            return $this->askValidated($question, $rules, $default, $customError, $secret);
         }
 
-        return $value;
+        throw new \Symfony\Component\Console\Exception\RuntimeException("Too many invalid answers for \"{$question}\". Aborting installation.");
     }
 
     /**
